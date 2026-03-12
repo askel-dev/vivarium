@@ -15,6 +15,7 @@ from memory import maybe_compress_journal, maybe_summarize_working_memory, updat
 from save_load import save_world, load_world
 from config import ENERGY_DRAIN_PER_TICK, SHELTER_DRAIN_REDUCTION, DEFAULT_TICK_SPEED
 from logger import AgentLogger
+from story import generate_story, build_agent_summaries
 
 try:
     import msvcrt
@@ -38,10 +39,27 @@ except ImportError:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
+def _run_story_generation(world, log, all_dead_agents):
+    """Generate and display the end-of-run narrative."""
+    summaries = build_agent_summaries(world, all_dead_agents)
+    story = generate_story(log.json_path, summaries)
+    if story:
+        story_path = log.json_path.replace(".jsonl", "_story.txt")
+        with open(story_path, "w", encoding="utf-8") as f:
+            f.write(story)
+        print(f"\n{'='*50}")
+        print("THE STORY OF THIS WORLD")
+        print(f"{'='*50}\n")
+        print(story)
+        print(f"\nSaved to {story_path}")
+
+
 def run(world, args, display_fn):
     event_log = []
     paused = False
+    show_profiles = False
     tick_speed = args.speed
+    all_dead_agents = []  # Track dead agents for story generation
     log = AgentLogger(log_dir=args.log_dir, ai_digest=args.ai_digest)
 
     while True:
@@ -56,7 +74,10 @@ def run(world, args, display_fn):
             elif ch == "q":
                 print("[QUIT]")
                 log.log_session_end(world.tick_count, "User quit")
+                _run_story_generation(world, log, all_dead_agents)
                 break
+            elif ch == "p":
+                show_profiles = not show_profiles
             elif ch == "+":
                 tick_speed = max(0.1, tick_speed - 0.2)
                 print(f"[SPEED] {tick_speed:.1f}s/tick")
@@ -122,6 +143,16 @@ def run(world, args, display_fn):
             # Log full agent state after their turn
             log.log_agent_state(agent, world.tick_count)
 
+        # Track combat deaths (agents removed by _handle_death during actions)
+        known_dead = {d["name"] for d in all_dead_agents}
+        for agent in agents_this_tick:
+            if agent not in world.agents and agent.name not in known_dead:
+                all_dead_agents.append({
+                    "name": agent.name,
+                    "personality": agent.personality,
+                    "tick": world.tick_count,
+                })
+
         # Passive energy drain
         dead_agents = []
         for agent in world.agents:
@@ -134,8 +165,21 @@ def run(world, args, display_fn):
                 dead_agents.append(agent)
 
         for agent in dead_agents:
-            world.agents.remove(agent)
+            # Drop inventory on tile
+            tile = world.grid[agent.y][agent.x]
+            for item_type, quantity in agent.inventory.items():
+                if quantity > 0:
+                    from world import Item
+                    tile.items.append(Item(type=item_type, quantity=quantity))
+            # Guard: agent may already be removed by _handle_death from combat
+            if agent in world.agents:
+                world.agents.remove(agent)
             log.log_death(agent.name, world.tick_count)
+            all_dead_agents.append({
+                "name": agent.name,
+                "personality": agent.personality,
+                "tick": world.tick_count,
+            })
             # Broadcast death to all surviving agents
             for survivor in world.agents:
                 survivor.add_to_working_memory(f"{agent.name} has collapsed and died.")
@@ -145,7 +189,8 @@ def run(world, args, display_fn):
             event_log.extend(tick_events)
             log.log_tick_end(world.tick_count, tick_events)
             log.log_session_end(world.tick_count, "All agents perished")
-            display_fn(world, event_log, world.tick_count)
+            display_fn(world, event_log, world.tick_count, show_profiles=show_profiles)
+            _run_story_generation(world, log, all_dead_agents)
             break
 
         # Increment journal counter once per tick, then check compression
@@ -159,7 +204,7 @@ def run(world, args, display_fn):
         log.log_tick_end(world.tick_count, tick_events)
 
         # Display
-        display_fn(world, event_log, world.tick_count)
+        display_fn(world, event_log, world.tick_count, show_profiles=show_profiles)
 
         time.sleep(tick_speed)
 
@@ -189,7 +234,7 @@ def main():
 
     print(f"Starting Agent World with {len(world.agents)} agents.")
     print(f"Logs will be written to: {os.path.abspath(args.log_dir)}/")
-    print("Controls: [Space] pause/resume  [s] save  [q] quit  [+/-] speed")
+    print("Controls: [Space] pause/resume  [s] save  [q] quit  [p] profiles  [+/-] speed")
     print()
     time.sleep(1)
 

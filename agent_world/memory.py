@@ -64,7 +64,7 @@ def update_beliefs_from_agents(agent, world):
         dist = abs(agent.x - other.x) + abs(agent.y - other.y)
         if dist > VIEW_RANGE:
             continue
-        # Check if we already have a belief about this agent
-        has_belief = any(other.name in b and "is " in b for b in agent.beliefs)
+        # Only add neutral belief if we have NO beliefs about this agent at all
+        has_belief = any(other.name in b for b in agent.beliefs)
         if not has_belief:
             agent.add_belief(f"{other.name} is neutral.")

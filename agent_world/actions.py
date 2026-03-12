@@ -1,4 +1,5 @@
 from world import Item, Structure, Note
+from config import STEAL_ENERGY_COST, ATTACK_ENERGY_COST, ATTACK_DAMAGE, PUSH_ENERGY_COST, VIEW_RANGE
 
 # Build costs: {material: {resource: amount}}
 BUILD_COSTS = {
@@ -41,6 +42,9 @@ def execute_action(agent, action_data: dict, world, event_log: list) -> list:
         "write": _write,
         "speak": _speak,
         "wait": _wait,
+        "steal": _steal,
+        "attack": _attack,
+        "push": _push,
     }
     
     acted = False
@@ -214,4 +218,177 @@ def _wait(agent, event_log):
     from config import ENERGY_FROM_WAIT, MAX_ENERGY
     agent.energy = min(agent.energy + ENERGY_FROM_WAIT, MAX_ENERGY)
     event = "I waited and rested."
+    return event
+
+
+# --- Hostile action helpers ---
+
+def _find_adjacent_agent(agent, target_name, world):
+    """Find a named agent adjacent (Manhattan distance 1) to the actor."""
+    for other in world.agents:
+        if other.name == target_name and other is not agent:
+            dist = abs(other.x - agent.x) + abs(other.y - agent.y)
+            if dist <= 1:
+                return other
+    return None
+
+
+def _notify_witnesses(actor, victim, action_verb, world):
+    """Notify nearby agents who can see a hostile action."""
+    for witness in world.agents:
+        if witness is actor or witness is victim:
+            continue
+        dist = abs(witness.x - actor.x) + abs(witness.y - actor.y)
+        if dist <= VIEW_RANGE:
+            witness.add_to_working_memory(f"I saw {actor.name} {action_verb} {victim.name}!")
+            witness.add_belief(f"{actor.name} is aggressive.")
+
+
+def _handle_death(victim, killer, world, event_log, cause="attack"):
+    """Handle agent death from hostile action. Drops inventory on tile."""
+    # Drop inventory on victim's tile
+    tile = world.grid[victim.y][victim.x]
+    for item_type, quantity in victim.inventory.items():
+        if quantity > 0:
+            tile.items.append(Item(type=item_type, quantity=quantity))
+
+    # Killer memory
+    if cause == "drowning":
+        killer.add_to_working_memory(f"I pushed {victim.name} into the water. They drowned.")
+        killer.add_belief(f"I killed {victim.name} by drowning.")
+    else:
+        killer.add_to_working_memory(f"I killed {victim.name}.")
+        killer.add_belief(f"I killed {victim.name}.")
+
+    # Witness kill beliefs
+    for witness in world.agents:
+        if witness is killer or witness is victim:
+            continue
+        dist = abs(witness.x - killer.x) + abs(witness.y - killer.y)
+        if dist <= VIEW_RANGE:
+            witness.add_to_working_memory(f"I saw {killer.name} kill {victim.name}!")
+            witness.add_belief(f"{killer.name} killed {victim.name}.")
+
+    # Remove from world
+    victim.energy = 0
+    if victim in world.agents:
+        world.agents.remove(victim)
+
+    event_log.append(f"{victim.name} has been killed by {killer.name}!")
+
+
+# --- Hostile actions ---
+
+def _steal(agent, data, world, event_log):
+    target_name = data.get("target", "")
+    item_type = data.get("item", "")
+
+    if item_type not in ("food", "wood", "stone"):
+        event_log.append(f"[INVALID] {agent.name} tried to steal unknown item '{item_type}'.")
+        return _wait(agent, event_log)
+
+    target = _find_adjacent_agent(agent, target_name, world)
+    if target is None:
+        event = f"I tried to steal from {target_name} but they are not adjacent."
+        event_log.append(f"[INVALID] {agent.name} tried to steal from {target_name} — not adjacent.")
+        return event
+
+    if target.inventory.get(item_type, 0) <= 0:
+        event = f"I tried to steal {item_type} from {target_name} but they don't have any."
+        event_log.append(f"[INVALID] {agent.name} tried to steal {item_type} from {target_name} — none in inventory.")
+        return event
+
+    # Execute
+    agent.energy -= STEAL_ENERGY_COST
+    target.inventory[item_type] -= 1
+    agent.inventory[item_type] = agent.inventory.get(item_type, 0) + 1
+
+    # Memory events
+    target.add_to_working_memory(f"{agent.name} stole {item_type} from me!")
+    target.add_belief(f"{agent.name} stole from me. They are a thief.")
+
+    # Witness system
+    _notify_witnesses(agent, target, "steal from", world)
+
+    event = f"I stole {item_type} from {target_name}."
+    event_log.append(f"{agent.name} stole {item_type} from {target_name}.")
+    return event
+
+
+def _attack(agent, data, world, event_log):
+    target_name = data.get("target", "")
+
+    target = _find_adjacent_agent(agent, target_name, world)
+    if target is None:
+        event = f"I tried to attack {target_name} but they are not adjacent."
+        event_log.append(f"[INVALID] {agent.name} tried to attack {target_name} — not adjacent.")
+        return event
+
+    # Execute
+    agent.energy -= ATTACK_ENERGY_COST
+    target.energy -= ATTACK_DAMAGE
+
+    # Memory events
+    target.add_to_working_memory(f"{agent.name} attacked me! I lost energy.")
+    target.add_belief(f"{agent.name} attacked me. They are dangerous.")
+
+    # Witness system
+    _notify_witnesses(agent, target, "attack", world)
+
+    # Check for kill
+    if target.energy <= 0:
+        _handle_death(target, agent, world, event_log)
+        event = f"I attacked {target_name} and killed them."
+        return event
+
+    event = f"I attacked {target_name}. They look weakened."
+    event_log.append(f"{agent.name} attacked {target_name}. {target_name} lost {ATTACK_DAMAGE} energy.")
+    return event
+
+
+def _push(agent, data, world, event_log):
+    target_name = data.get("target", "")
+    direction = data.get("direction", "")
+
+    if direction not in DIRECTION_OFFSETS:
+        event_log.append(f"[INVALID] {agent.name} bad push direction '{direction}'.")
+        return _wait(agent, event_log)
+
+    target = _find_adjacent_agent(agent, target_name, world)
+    if target is None:
+        event = f"I tried to push {target_name} but they are not adjacent."
+        event_log.append(f"[INVALID] {agent.name} tried to push {target_name} — not adjacent.")
+        return event
+
+    nx, ny = _apply_direction(target.x, target.y, direction)
+    if not world.in_bounds(nx, ny):
+        event = f"I tried to push {target_name} {direction} but it's out of bounds."
+        event_log.append(f"[INVALID] {agent.name} tried to push {target_name} out of bounds.")
+        return event
+
+    # Execute — costs energy regardless of outcome
+    agent.energy -= PUSH_ENERGY_COST
+    dest_tile = world.grid[ny][nx]
+
+    # Check for drowning (water tile without bridge)
+    if dest_tile.terrain == "water" and (dest_tile.structure is None or dest_tile.structure.type != "bridge"):
+        target.add_to_working_memory(f"{agent.name} pushed me into the water!")
+        _handle_death(target, agent, world, event_log, cause="drowning")
+        _notify_witnesses(agent, target, "push into the water", world)
+        event = f"I pushed {target_name} into the water. They drowned."
+        return event
+
+    # Check if destination is walkable
+    if not dest_tile.is_walkable():
+        event = f"I tried to push {target_name} {direction} but the path is blocked."
+        event_log.append(f"[INVALID] {agent.name} tried to push {target_name} into blocked tile.")
+        return event
+
+    # Normal push
+    target.x, target.y = nx, ny
+    target.add_to_working_memory(f"{agent.name} pushed me {direction}!")
+    _notify_witnesses(agent, target, "push", world)
+
+    event = f"I pushed {target_name} {direction}."
+    event_log.append(f"{agent.name} pushed {target_name} {direction}.")
     return event

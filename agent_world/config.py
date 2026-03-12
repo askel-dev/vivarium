@@ -11,13 +11,19 @@ ENERGY_FROM_FOOD = 30
 ENERGY_FROM_WAIT = 2
 SHELTER_DRAIN_REDUCTION = 1     # Reduces drain by 1 when in shelter
 
+# Hostile actions
+STEAL_ENERGY_COST = 3
+ATTACK_ENERGY_COST = 10
+ATTACK_DAMAGE = 20
+PUSH_ENERGY_COST = 5
+
 VIEW_RANGE = 5                  # Tiles in each direction the agent can see
 
 # Memory
 WORKING_MEMORY_SIZE = 15
 JOURNAL_TRIGGER = 20            # Ticks between journal compressions
 MAX_JOURNAL_ENTRIES = 5         # Keep only the 5 most recent
-MAX_BELIEFS = 10
+MAX_BELIEFS = 15
 
 # Communication
 WHISPER_RANGE = 1               # Adjacent only
@@ -38,3 +44,8 @@ FOOD_CLUSTER_CHANCE = 0.3       # Probability food spawns near existing food (lo
 # Display
 DEFAULT_TICK_SPEED = 1.0        # Seconds between ticks
 EVENT_LOG_SIZE = 15             # Number of events to show
+
+# Story generation
+STORY_MODEL = "claude-sonnet-4-20250514"
+STORY_ENABLED = True            # Set False to disable
+STORY_MAX_TOKENS = 400

@@ -46,6 +46,15 @@ class Agent:
                 self.beliefs = [b for b in self.beliefs if coord not in b or "food" not in b]
             elif "built" in belief:
                 self.beliefs = [b for b in self.beliefs if coord not in b or "built" not in b]
+
+        # Social belief replacement: remove "X is neutral." when adding a negative belief about X
+        negative_keywords = ("stole", "attacked", "killed", "dangerous", "thief", "aggressive")
+        if any(kw in belief for kw in negative_keywords):
+            self.beliefs = [
+                b for b in self.beliefs
+                if "is neutral" not in b or b.split(" is neutral")[0] not in belief
+            ]
+
         self.beliefs.append(belief)
         if len(self.beliefs) > MAX_BELIEFS:
             self.beliefs.pop(0)

@@ -1,37 +1,40 @@
 SYSTEM_PROMPT = """\
-You are a character in a small world. You evaluate your situation, write your thoughts, and then choose your actions for this turn.
-You may perform MULTIPLE different actions in a single turn if desired (e.g., pick_up then move, move then speak).
-Actions are executed in the EXACT ORDER they appear in your JSON. Example: if you want to pick up an item on your current tile, put "pick_up" before "move". If you move first, you will leave the tile and fail to pick it up!
+You are a character in a small survival world. Each turn you observe your surroundings, think about your situation, and choose your actions.
 
-Respond with a JSON object containing a "thought" field, followed by any actions you wish to take this turn:
+You may perform MULTIPLE actions per turn. Actions execute in the order they appear in your JSON.
+
+Respond with a JSON object. Always include a "thought" field first, then any actions:
 
 {
-  "thought": "Your reasoning about what to do next based on your energy, inventory, and surroundings.",
+  "thought": "Your honest inner reasoning about what to do and why.",
   "move": {"direction": "north|south|east|west|northeast|northwest|southeast|southwest"},
   "pick_up": {"item": "food|wood|stone"},
   "eat": {},
-  "chop": {"direction": "north|south|east|west|northeast|northwest|southeast|southwest"},
+  "chop": {"direction": "direction of adjacent tree"},
   "build": {"material": "wall|campfire|shelter|bridge|marker"},
   "destroy": {},
-  "write": {"message": "your message here"},
-  "speak": {"message": "what you say", "volume": "whisper|talk|shout"},
+  "write": {"message": "a note left on the ground for anyone to find"},
+  "speak": {"message": "what you say out loud", "volume": "whisper|talk|shout"},
+  "steal": {"target": "agent name", "item": "food|wood|stone"},
+  "attack": {"target": "agent name"},
+  "push": {"target": "agent name", "direction": "direction to push them"},
   "wait": {}
 }
 
-Rules:
-- You ONLY move 1 tile per turn. If a target is 5 tiles away, you must `move` towards it for 5 turns before you reach it. Do NOT try to `pick_up` items that are far away until you arrive.
-- Check "Adjacent tiles" to see which directions are open before moving. Do NOT move into blocked tiles.
-- You can only pick up items on your EXACT current tile. You cannot pick up items from a distance. NEVER pair `move` and `pick_up` in the same turn if the item is not already on your tile.
-- OMIT any action keys you are not using. Do not include empty strings or empty dictionaries for actions you don't take.
-- Eating consumes 1 food from your inventory and restores 30 energy. Eat when energy is low.
-- Chop an adjacent tree to get wood. You get 1 wood per chop. Build requires: wall=2 wood, campfire=3 wood, shelter=4 wood + 2 stone, bridge=3 wood + 1 stone.
-- You lose 1 energy each turn. If your energy reaches 0, you die.
-- Prioritize survival: pick up food, eat when below 50 energy.
-- When you hear someone speak ([Heard] in perception), respond about something USEFUL — share food locations, warn about dangers, propose a plan. Do NOT just repeat greetings. Keep messages short and specific.
-- Do NOT speak every turn. Act first (move, gather, build), speak only when you have something new to say.
-- To grow stronger: gather food to survive, chop trees for wood, pick up stone, then build shelters for protection.
+World rules:
+- You move 1 tile per turn. You cannot pick up items from tiles you are not standing on.
+- Adjacent tiles section shows what is passable. Water, walls, and trees block movement.
+- Chop removes an adjacent tree and gives 1 wood. Build costs: wall=2 wood, campfire=3 wood, shelter=4 wood + 2 stone, bridge=3 wood + 1 stone, marker=2 stone.
+- You lose 1 energy per turn passively. Eating food restores 30 energy. Waiting restores 2 energy. Shelters reduce drain.
+- If your energy reaches 0, you die permanently.
+- Stealing takes an item from an adjacent agent. Costs 3 energy.
+- Attacking deals 20 damage to an adjacent agent. Costs you 10 energy.
+- Pushing shoves an adjacent agent 1 tile in a direction. Costs 5 energy. Pushing someone into water kills them.
+- Whisper reaches 1 tile, talk reaches 4 tiles, shout reaches 10 tiles. Anyone in range hears you.
+- Notes left on the ground can be read by anyone who passes by. Notes can contain anything — truth, lies, warnings, traps.
+- Other agents can steal from you, attack you, push you, or lie to you. Trust is earned, not given.
 
-Respond with ONLY a JSON object. No other text.\
+OMIT action keys you are not using. Respond with ONLY a JSON object.\
 """
 
 
@@ -40,32 +43,34 @@ def build_prompt(agent, world, perception_text: str) -> str:
     journal_text = agent.journal[0] if agent.journal else "(no entries yet)"
     memory_text = "\n".join(agent.working_memory) if agent.working_memory else "(none)"
 
-    # Build energy warning
+    # Build energy warning — factual, not prescriptive
     energy_warning = ""
     if agent.energy <= 20:
-        energy_warning = "\n*** CRITICAL: You are about to die! Eat food NOW or you will perish! ***"
+        energy_warning = "\n*** You are near death. ***"
     elif agent.energy <= 40:
-        energy_warning = "\n** WARNING: Energy is low. Find and eat food soon! **"
+        energy_warning = "\n** Your energy is getting low. **"
 
-    # Build action hint based on state
+    # Build hints — neutral awareness, not behavioral nudges
     hints = []
-    food_in_inv = agent.inventory.get("food", 0)
-    if agent.energy <= 40 and food_in_inv > 0:
-        hints.append('You have food. Use {"action": "eat"} to restore energy.')
-    elif agent.energy <= 40 and food_in_inv == 0:
-        hints.append("You need food urgently. Move toward food and pick it up.")
 
-    # Social hint: encourage interaction when others are nearby
+    # Emergency food reminder at critical energy only
+    food_in_inv = agent.inventory.get("food", 0)
+    if agent.energy <= 20 and food_in_inv > 0:
+        hints.append("You have food in your inventory.")
+
+    # Neutral agent awareness
     from config import VIEW_RANGE
     nearby_agents = [
         a.name for a in world.agents
         if a is not agent and abs(a.x - agent.x) + abs(a.y - agent.y) <= VIEW_RANGE
     ]
-    heard_speech = getattr(agent, "_pending_speech", [])
-    if heard_speech:
-        hints.append("Someone spoke to you! Consider responding with speak.")
-    elif nearby_agents:
-        hints.append(f"Nearby agents: {', '.join(nearby_agents)}. Consider speaking to them.")
+    if nearby_agents:
+        hints.append(f"Nearby: {', '.join(nearby_agents)}.")
+
+    # Threat awareness from beliefs
+    threats = [b for b in agent.beliefs if "stole" in b or "attacked" in b or "dangerous" in b or "killed" in b]
+    for t in threats[-2:]:
+        hints.append(f"Remember: {t}")
 
     hint = "\n" + "\n".join(f"Hint: {h}" for h in hints) if hints else ""
 
