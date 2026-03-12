@@ -42,7 +42,7 @@ def run(world, args, display_fn):
     event_log = []
     paused = False
     tick_speed = args.speed
-    log = AgentLogger(log_dir=args.log_dir)
+    log = AgentLogger(log_dir=args.log_dir, ai_digest=args.ai_digest)
 
     while True:
         # Keyboard input
@@ -172,6 +172,7 @@ def main():
     parser.add_argument("--speed", type=float, default=DEFAULT_TICK_SPEED, help="Seconds between ticks")
     parser.add_argument("--no-display", action="store_true", help="Log-only mode")
     parser.add_argument("--log-dir", type=str, default="logs", help="Directory for log files")
+    parser.add_argument("--ai-digest", action="store_true", help="Enable highly compressed JSONL log output for AI ingestion")
     args = parser.parse_args()
 
     if args.load:

@@ -13,12 +13,18 @@ from datetime import datetime
 
 
 class AgentLogger:
-    def __init__(self, log_dir="logs"):
+    def __init__(self, log_dir="logs", ai_digest=False):
         self.log_dir = log_dir
+        self.ai_digest = ai_digest
         os.makedirs(log_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_path = os.path.join(log_dir, f"session_{timestamp}.log")
         self.json_path = os.path.join(log_dir, f"session_{timestamp}.jsonl")
+        
+        if self.ai_digest:
+            self.digest_path = os.path.join(log_dir, f"session_{timestamp}_digest.jsonl")
+            self._digest_cache = {}
+            
         self._write_header()
 
     def _write_header(self):
@@ -26,6 +32,11 @@ class AgentLogger:
             f.write("=" * 80 + "\n")
             f.write(f"  AGENT WORLD SESSION LOG — {datetime.now().isoformat()}\n")
             f.write("=" * 80 + "\n\n")
+            
+            # Write system prompt once at the top of the file
+            from prompts import SYSTEM_PROMPT
+            f.write("--- SYSTEM RULES ---\n")
+            f.write(SYSTEM_PROMPT + "\n\n")
 
     def _append(self, text: str):
         with open(self.log_path, "a", encoding="utf-8") as f:
@@ -52,8 +63,14 @@ class AgentLogger:
         })
 
     def log_prompt(self, agent_name: str, tick: int, prompt: str):
-        self._append(f"\n--- {agent_name} | PROMPT SENT TO LLM ---\n")
-        self._append(prompt + "\n")
+        # Only log the dynamic portion of the prompt (the user message) to the massive log
+        if not self.ai_digest:
+            self._append(f"\n--- {agent_name} | PROMPT ---\n")
+            self._append(prompt + "\n")
+            
+        if self.ai_digest:
+             self._digest_cache[agent_name] = {"tick": tick, "prompt": prompt}
+        
         self._append_json({
             "event": "prompt",
             "tick": tick,
@@ -71,6 +88,9 @@ class AgentLogger:
             if k != "thought":
                 self._append(f"  {k}: {v}\n")
                 
+        if self.ai_digest and agent_name in self._digest_cache:
+            self._digest_cache[agent_name]["action"] = action_data
+
         self._append_json({
             "event": "llm_response",
             "tick": tick,
@@ -82,6 +102,9 @@ class AgentLogger:
         self._append(f"\n--- {agent_name} | ACTION RESULT ---\n")
         for res in results:
             self._append(f"  Result: {res}\n")
+            
+        if self.ai_digest and agent_name in self._digest_cache:
+            self._digest_cache[agent_name]["results"] = results
             
         self._append_json({
             "event": "action_result",
@@ -120,10 +143,16 @@ class AgentLogger:
         self._append(f"  Position: ({agent.x}, {agent.y})\n")
         self._append(f"  Energy:   {agent.energy}\n")
         self._append(f"  Inventory: {agent.inventory_string()}\n")
-        self._append(f"  Beliefs:  {agent.beliefs}\n")
-        self._append(f"  Working memory ({len(agent.working_memory)} items):\n")
-        for wm in agent.working_memory:
-            self._append(f"    - {wm}\n")
+        
+        if not self.ai_digest:
+            self._append(f"  Beliefs ({len(agent.beliefs)} items)\n")
+            self._append(f"  Working memory ({len(agent.working_memory)} items)\n")
+        else:
+            self._append(f"  Beliefs:  {agent.beliefs}\n")
+            self._append(f"  Working memory ({len(agent.working_memory)} items):\n")
+            for wm in agent.working_memory:
+                self._append(f"    - {wm}\n")
+                
         self._append_json({
             "event": "agent_state",
             "tick": tick,
@@ -136,6 +165,21 @@ class AgentLogger:
             "working_memory": list(agent.working_memory),
             "journal": list(agent.journal),
         })
+        
+        if self.ai_digest and agent.name in self._digest_cache:
+            cache = self._digest_cache.pop(agent.name)
+            record = {
+               "t": tick,
+               "a": agent.name,
+               "pos": f"({agent.x},{agent.y})",
+               "e": agent.energy,
+               "inv": dict(agent.inventory),
+               "prompt": cache.get("prompt"),
+               "action": cache.get("action"),
+               "results": cache.get("results"),
+            }
+            with open(self.digest_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     def log_death(self, agent_name: str, tick: int):
         self._append(f"\n  *** {agent_name} HAS DIED ***\n")
