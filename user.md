@@ -1,0 +1,1 @@
+User has a 3080 10GB and 64 GB of ram. 
