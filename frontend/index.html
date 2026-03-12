@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Vivarium — A living world of AI agents" />
+    <title>Vivarium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Status indicator (top-left) -->
+    <div id="hud">
+      <div id="status" class="disconnected">Reconnecting…</div>
+    </div>
+
+    <!-- Agent Inspector (right panel) -->
+    <div id="inspector">
+      <div id="inspector-header">
+        <h2 id="inspector-title">Inspector</h2>
+        <button id="inspector-close" title="Close inspector">✕</button>
+      </div>
+      <div id="inspector-body">
+        <div id="inspector-empty">
+          <span class="inspector-icon">🔍</span>
+          <p>Click an agent to inspect</p>
+        </div>
+        <div id="inspector-content" class="hidden">
+          <div id="inspector-name-row">
+            <span id="inspector-agent-name"></span>
+            <span id="inspector-agent-pos"></span>
+          </div>
+
+          <div id="inspector-energy-section" class="inspector-section">
+            <label>Energy</label>
+            <div id="energy-bar-container">
+              <div id="energy-bar-fill"></div>
+              <span id="energy-bar-label"></span>
+            </div>
+          </div>
+
+          <div id="inspector-inventory-section" class="inspector-section">
+            <label>Inventory</label>
+            <div id="inspector-inventory"></div>
+          </div>
+
+          <div id="inspector-personality-section" class="inspector-section">
+            <label>Personality</label>
+            <p id="inspector-personality"></p>
+          </div>
+
+          <div id="inspector-beliefs-section" class="inspector-section">
+            <label>Beliefs</label>
+            <ul id="inspector-beliefs"></ul>
+          </div>
+
+          <div id="inspector-memory-section" class="inspector-section">
+            <label>Working Memory</label>
+            <ul id="inspector-memory"></ul>
+          </div>
+
+          <div id="inspector-journal-section" class="inspector-section">
+            <label>Journal</label>
+            <ul id="inspector-journal"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Log (bottom panel) -->
+    <div id="event-log">
+      <div id="event-log-header">
+        <h3>Event Log</h3>
+        <span id="event-log-count"></span>
+      </div>
+      <div id="event-log-body"></div>
+    </div>
+
+    <!-- Controls (bottom action bar) -->
+    <div id="controls">
+      <div id="controls-left">
+        <button id="btn-play-pause" title="Play / Pause (Space)">
+          <span id="btn-pp-icon">▶</span>
+        </button>
+        <div id="speed-control">
+          <label for="speed-slider">Speed</label>
+          <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" />
+          <span id="speed-value">1.0×</span>
+        </div>
+      </div>
+      <div id="controls-right">
+        <span id="tick-info">Waiting for first tick…</span>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

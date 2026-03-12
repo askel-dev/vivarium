@@ -86,6 +86,11 @@ def _move(agent, data, world, event_log):
         event = f"I tried to move {direction} but the path was blocked by {tile.terrain or 'a structure'}."
         event_log.append(f"{agent.name} tried to move {direction} but was blocked.")
         return event
+    occupant = world.get_agent_at(nx, ny)
+    if occupant:
+        event = f"I tried to move {direction} but {occupant.name} was already there."
+        event_log.append(f"{agent.name} tried to move {direction} but {occupant.name} was in the way.")
+        return event
     agent.x, agent.y = nx, ny
     event = f"I moved {direction}."
     event_log.append(f"{agent.name} moved {direction} to ({nx}, {ny}).")
@@ -199,16 +204,15 @@ def _write(agent, data, world, event_log):
 
 
 def _speak(agent, data, world, event_log):
-    message = data.get("message", "").strip()[:100]
+    message = data.get("message", "").strip()
     volume = data.get("volume", "talk")
     if volume not in ("whisper", "talk", "shout"):
         volume = "talk"
     if not message:
         event_log.append(f"[INVALID] {agent.name} tried to speak empty message.")
         return _wait(agent, event_log)
-    # Speech delivery happens in communication.py; here we just log
+    # Speech delivery happens in communication.py
     event = f"I {volume}ed: '{message}'."
-    event_log.append(f"{agent.name} {volume}s: '{message}'.")
     # Store speech on agent for communication module to deliver
     agent._pending_speech_out = (message, volume)
     return event
@@ -382,6 +386,13 @@ def _push(agent, data, world, event_log):
     if not dest_tile.is_walkable():
         event = f"I tried to push {target_name} {direction} but the path is blocked."
         event_log.append(f"[INVALID] {agent.name} tried to push {target_name} into blocked tile.")
+        return event
+
+    # Check for agent collision
+    occupant = world.get_agent_at(nx, ny)
+    if occupant:
+        event = f"I tried to push {target_name} {direction} but {occupant.name} is in the way."
+        event_log.append(f"[INVALID] {agent.name} tried to push {target_name} into {occupant.name}.")
         return event
 
     # Normal push

@@ -14,6 +14,9 @@ def deliver_speech(speaker, world, event_log: list, log=None, tick=0):
     message, volume = speaker._pending_speech_out
     del speaker._pending_speech_out
 
+    speech_event = f"{speaker.name} {volume}s: '{message}'"
+    event_log.append(speech_event)
+
     max_dist = VOLUME_RANGES.get(volume, TALK_RANGE)
     heard_by = []
     for agent in world.agents:
@@ -21,7 +24,6 @@ def deliver_speech(speaker, world, event_log: list, log=None, tick=0):
             continue
         dist = abs(agent.x - speaker.x) + abs(agent.y - speaker.y)
         if dist <= max_dist:
-            speech_event = f"{speaker.name} {volume}s: '{message}'"
             if not hasattr(agent, "_pending_speech"):
                 agent._pending_speech = []
             agent._pending_speech.append(speech_event)

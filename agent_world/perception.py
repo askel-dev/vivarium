@@ -67,6 +67,8 @@ def build_perception(agent, world) -> str:
 
             if tile.structure:
                 notable.append(f"{tile.structure.type} (built by {tile.structure.builder})")
+            if tile.terrain == "tree":
+                notable.append("a tree")
             for item in tile.items:
                 qty = f" (x{item.quantity})" if item.quantity > 1 else ""
                 notable.append(f"{item.type}{qty}")
