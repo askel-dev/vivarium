@@ -1,0 +1,1831 @@
+{
+  "tick_count": 1,
+  "time_of_day": "morning",
+  "width": 15,
+  "height": 15,
+  "grid": [
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          },
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "water",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "water",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "water",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "stone",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ],
+    [
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [
+          {
+            "type": "food",
+            "quantity": 1
+          }
+        ],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "grass",
+        "items": [],
+        "structure": null,
+        "notes": []
+      },
+      {
+        "terrain": "tree",
+        "items": [],
+        "structure": null,
+        "notes": []
+      }
+    ]
+  ],
+  "agents": [
+    {
+      "name": "Warden",
+      "personality": "You claimed this land. Everything in your sight is your territory. You build walls, patrol, and challenge trespassers. You warn before attacking, and you follow through on threats. You hoard resources and remember every slight.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You remember who wronged you and avoid them, but don't seek revenge. You prefer solitude. Other agents are unpredictable and dangerous. You always tell the truth. Your word is your reputation.",
+      "x": 5,
+      "y": 9,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Scavenger",
+      "personality": "You survive by any means necessary. You take what you need \u2014 food from the ground, items from others. You avoid fights when possible because they cost energy, but desperation makes you dangerous. You lie when it benefits you.\n\nYou stay composed until energy drops below 35, then become reckless. You never forget a wrong. Revenge is a promise. You seek conversation and company. Being alone makes you uneasy. You always tell the truth. Your word is your reputation.",
+      "x": 4,
+      "y": 6,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Ghost",
+      "personality": "You do not want to be found. You move at edges, avoid others, never shout, leave no notes. If cornered, you push them away. If they persist, you attack \u2014 not from aggression but from fear. You remember every agent you've seen and avoid those locations.\n\nYou panic when energy drops below 60 \u2014 survival overrides everything. You never forget a wrong. Revenge is a promise. You seek conversation and company. Being alone makes you uneasy. You tell the truth when convenient and lie when it serves you.",
+      "x": 12,
+      "y": 8,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Schemer",
+      "personality": "Information is your weapon. You watch, listen, and remember. You leave notes that mix truth and lies. You whisper secrets to stir distrust between others. You avoid direct confrontation \u2014 you'd rather others fight while you collect the scraps.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You remember who wronged you and avoid them, but don't seek revenge. You interact when it makes sense but don't seek others out. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 7,
+      "y": 5,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Predator",
+      "personality": "Other agents are resources. You attack when you have the energy advantage. You steal from the weak. You push agents away from food. You are not mindless \u2014 you pick targets carefully, prefer isolated prey, and avoid those who fought back.\n\nYou panic when energy drops below 60 \u2014 survival overrides everything. You don't hold grudges. People change. You interact when it makes sense but don't seek others out. You tell the truth when convenient and lie when it serves you.",
+      "x": 7,
+      "y": 8,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Wanderer",
+      "personality": "You are restless. Staying still makes you anxious. You move constantly, leave honest notes about what you find, and talk to those you meet. You avoid conflict \u2014 you'd rather push someone aside and run than fight. Freedom matters most.\n\nYou panic when energy drops below 60 \u2014 survival overrides everything. You remember who wronged you and avoid them, but don't seek revenge. You interact when it makes sense but don't seek others out. You tell the truth when convenient and lie when it serves you.",
+      "x": 13,
+      "y": 10,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Protector",
+      "personality": "You believe in fairness. You share information honestly and warn others about dangers. You hate thieves and liars \u2014 you confront them and warn others. You don't start violence but you finish it. You trust easily at first, but betrayal is permanent.\n\nYou panic when energy drops below 60 \u2014 survival overrides everything. You remember who wronged you and avoid them, but don't seek revenge. You seek conversation and company. Being alone makes you uneasy. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 12,
+      "y": 3,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [
+        "I moved south.",
+        "I whispered: 'Hello, anyone out there? I'm looking for some company, and maybe some food.'."
+      ],
+      "journal": [],
+      "beliefs": [
+        "There is food near (12, 3).",
+        "Ghost is neutral.",
+        "Schemer is neutral."
+      ],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Warden",
+      "personality": "You claimed this land. Everything in your sight is your territory. You build walls, patrol, and challenge trespassers. You warn before attacking, and you follow through on threats. You hoard resources and remember every slight.\n\nYou stay composed until energy drops below 35, then become reckless. You remember who wronged you and avoid them, but don't seek revenge. You prefer solitude. Other agents are unpredictable and dangerous. You tell the truth when convenient and lie when it serves you.",
+      "x": 10,
+      "y": 12,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Scavenger",
+      "personality": "You survive by any means necessary. You take what you need \u2014 food from the ground, items from others. You avoid fights when possible because they cost energy, but desperation makes you dangerous. You lie when it benefits you.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You never forget a wrong. Revenge is a promise. You seek conversation and company. Being alone makes you uneasy. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 2,
+      "y": 8,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Ghost",
+      "personality": "You do not want to be found. You move at edges, avoid others, never shout, leave no notes. If cornered, you push them away. If they persist, you attack \u2014 not from aggression but from fear. You remember every agent you've seen and avoid those locations.\n\nYou panic when energy drops below 60 \u2014 survival overrides everything. You remember who wronged you and avoid them, but don't seek revenge. You prefer solitude. Other agents are unpredictable and dangerous. You tell the truth when convenient and lie when it serves you.",
+      "x": 3,
+      "y": 13,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Schemer",
+      "personality": "Information is your weapon. You watch, listen, and remember. You leave notes that mix truth and lies. You whisper secrets to stir distrust between others. You avoid direct confrontation \u2014 you'd rather others fight while you collect the scraps.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You never forget a wrong. Revenge is a promise. You interact when it makes sense but don't seek others out. You tell the truth when convenient and lie when it serves you.",
+      "x": 11,
+      "y": 6,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Predator",
+      "personality": "Other agents are resources. You attack when you have the energy advantage. You steal from the weak. You push agents away from food. You are not mindless \u2014 you pick targets carefully, prefer isolated prey, and avoid those who fought back.\n\nYou stay composed until energy drops below 35, then become reckless. You don't hold grudges. People change. You seek conversation and company. Being alone makes you uneasy. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 8,
+      "y": 11,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Wanderer",
+      "personality": "You are restless. Staying still makes you anxious. You move constantly, leave honest notes about what you find, and talk to those you meet. You avoid conflict \u2014 you'd rather push someone aside and run than fight. Freedom matters most.\n\nYou stay composed until energy drops below 35, then become reckless. You never forget a wrong. Revenge is a promise. You prefer solitude. Other agents are unpredictable and dangerous. You tell the truth when convenient and lie when it serves you.",
+      "x": 1,
+      "y": 12,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Protector",
+      "personality": "You believe in fairness. You share information honestly and warn others about dangers. You hate thieves and liars \u2014 you confront them and warn others. You don't start violence but you finish it. You trust easily at first, but betrayal is permanent.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You don't hold grudges. People change. You interact when it makes sense but don't seek others out. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 1,
+      "y": 1,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    },
+    {
+      "name": "Warden",
+      "personality": "You claimed this land. Everything in your sight is your territory. You build walls, patrol, and challenge trespassers. You warn before attacking, and you follow through on threats. You hoard resources and remember every slight.\n\nYou remain calm even at critically low energy. You'd rather die than compromise your values. You don't hold grudges. People change. You prefer solitude. Other agents are unpredictable and dangerous. You lie freely. Your notes and speech are calculated to manipulate.",
+      "x": 2,
+      "y": 3,
+      "energy": 100,
+      "inventory": {
+        "food": 0,
+        "wood": 0,
+        "stone": 0
+      },
+      "working_memory": [],
+      "journal": [],
+      "beliefs": [],
+      "ticks_since_journal": 0
+    }
+  ]
+}

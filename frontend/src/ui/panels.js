@@ -11,9 +11,10 @@ import { subscribe, update, getState } from "../store.js";
 // DOM references (cached once on init)
 // ---------------------------------------------------------------------------
 
-let inspectorEl, inspectorEmpty, inspectorContent;
+let inspectorEl, inspectorEmpty, inspectorContent, inspectorTileContent;
 let nameEl, posEl, energyFill, energyLabel, inventoryEl, personalityEl;
 let beliefsEl, memoryEl, journalEl;
+let tilePosEl, notesEl;
 let eventLogBody, eventLogCount;
 let closeBtn;
 
@@ -29,6 +30,7 @@ function initPanels() {
   inspectorEl      = document.getElementById("inspector");
   inspectorEmpty   = document.getElementById("inspector-empty");
   inspectorContent = document.getElementById("inspector-content");
+  inspectorTileContent = document.getElementById("inspector-tile-content");
   nameEl           = document.getElementById("inspector-agent-name");
   posEl            = document.getElementById("inspector-agent-pos");
   energyFill       = document.getElementById("energy-bar-fill");
@@ -38,21 +40,25 @@ function initPanels() {
   beliefsEl        = document.getElementById("inspector-beliefs");
   memoryEl         = document.getElementById("inspector-memory");
   journalEl        = document.getElementById("inspector-journal");
+  tilePosEl        = document.getElementById("inspector-tile-pos");
+  notesEl          = document.getElementById("inspector-notes");
   closeBtn         = document.getElementById("inspector-close");
 
   // Event Log
   eventLogBody  = document.getElementById("event-log-body");
   eventLogCount = document.getElementById("event-log-count");
 
-  // Close button deselects agent
+  // Close button deselects agent and tile
   closeBtn.addEventListener("click", () => {
-    update({ selectedAgent: null, agentDetail: null });
+    update({ selectedAgent: null, agentDetail: null, selectedTile: null });
   });
 
   // Subscribe to store
   subscribe("selectedAgent", onSelectedAgentChange);
+  subscribe("selectedTile", onSelectedTileChange);
   subscribe("agentDetail", onAgentDetailChange);
   subscribe("events", onEventsChange);
+  subscribe("grid", onGridChange);
 
   // Also update inspector position/energy from tick data if an agent is selected
   subscribe("agents", onAgentsTickUpdate);
@@ -63,17 +69,90 @@ function initPanels() {
 // ---------------------------------------------------------------------------
 
 function onSelectedAgentChange(agentName) {
+  const selectedTile = getState().selectedTile;
+
   if (agentName) {
     inspectorEmpty.classList.add("hidden");
+    inspectorTileContent.classList.add("hidden");
     inspectorContent.classList.remove("hidden");
     // Show name immediately, rest fills in when detail arrives
     nameEl.textContent = agentName;
     posEl.textContent = "";
     // Clear stale detail fields
     clearDetailFields();
+  } else if (selectedTile) {
+    // Let onSelectedTileChange or onGridChange handle showing the tile UI
+    inspectorContent.classList.add("hidden");
+    inspectorEmpty.classList.add("hidden");
+    inspectorTileContent.classList.remove("hidden");
   } else {
     inspectorEmpty.classList.remove("hidden");
     inspectorContent.classList.add("hidden");
+    inspectorTileContent.classList.add("hidden");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Inspector: file state
+// ---------------------------------------------------------------------------
+
+function onSelectedTileChange(tile) {
+  const agentName = getState().selectedAgent;
+  if (agentName) return; // Agent takes precedence
+
+  if (tile) {
+    inspectorEmpty.classList.add("hidden");
+    inspectorContent.classList.add("hidden");
+    inspectorTileContent.classList.remove("hidden");
+    
+    tilePosEl.textContent = `(${tile.x}, ${tile.y})`;
+    updateTilePanel(tile);
+  } else {
+    inspectorEmpty.classList.remove("hidden");
+    inspectorContent.classList.add("hidden");
+    inspectorTileContent.classList.add("hidden");
+  }
+}
+
+function onGridChange(grid) {
+  const tile = getState().selectedTile;
+  if (!tile || getState().selectedAgent) return;
+  updateTilePanel(tile);
+}
+
+function updateTilePanel(tile) {
+  const grid = getState().grid;
+  if (!grid || !grid[tile.y] || !grid[tile.y][tile.x]) return;
+  
+  const cell = grid[tile.y][tile.x];
+  
+  // Render notes
+  notesEl.innerHTML = "";
+  if (cell.notes && cell.notes.length > 0) {
+    for (const note of cell.notes) {
+      const li = document.createElement("li");
+      
+      const authorSpan = document.createElement("strong");
+      authorSpan.textContent = note.author;
+      // You can add styles to the author, maybe color code them
+      
+      const tickSpan = document.createElement("span");
+      tickSpan.className = "event-tick";
+      tickSpan.textContent = `[${note.tick}] `;
+      
+      const contentNode = document.createTextNode(`: ${note.content}`);
+      
+      li.appendChild(tickSpan);
+      li.appendChild(authorSpan);
+      li.appendChild(contentNode);
+      notesEl.appendChild(li);
+    }
+  } else {
+    const li = document.createElement("li");
+    li.textContent = "No notes on this tile.";
+    li.style.color = "var(--text-dim)";
+    li.style.fontStyle = "italic";
+    notesEl.appendChild(li);
   }
 }
 

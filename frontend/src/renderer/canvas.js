@@ -152,6 +152,7 @@ function render(timestamp) {
     drawTerrain(grid);
     drawStructures(grid);
     drawItems(grid);
+    drawNotes(grid);
     drawGravestones();
     drawAgents(timestamp);
     drawSelectionRing(timestamp);
@@ -239,6 +240,41 @@ function drawItems(grid) {
         ctx.arc(dotX, dotY, 3, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Notes
+// ---------------------------------------------------------------------------
+
+/**
+ * Draw a small indicator for dropped notes.
+ */
+function drawNotes(grid) {
+  for (let y = 0; y < grid.length; y++) {
+    const row = grid[y];
+    for (let x = 0; x < row.length; x++) {
+      const notes = row[x].notes;
+      if (!notes || !notes.length) continue;
+
+      const px = x * TILE_SIZE;
+      const py = y * TILE_SIZE;
+
+      // Draw a small white/yellowish rectangle to look like a piece of paper
+      ctx.fillStyle = "#ffffe0";
+      ctx.fillRect(px + TILE_SIZE - 12, py + 4, 8, 10);
+      
+      // Draw a few tiny lines inside to represent text
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.fillRect(px + TILE_SIZE - 10, py + 6, 4, 1);
+      ctx.fillRect(px + TILE_SIZE - 10, py + 8, 4, 1);
+      ctx.fillRect(px + TILE_SIZE - 10, py + 10, 3, 1);
+      
+      // Border for contrast
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px + TILE_SIZE - 12, py + 4, 8, 10);
     }
   }
 }
@@ -479,9 +515,9 @@ function onCanvasClick(e) {
   const clicked = agents.find(a => a.x === tileX && a.y === tileY && a.alive !== false);
 
   if (clicked) {
-    update({ selectedAgent: clicked.name });
+    update({ selectedAgent: clicked.name, selectedTile: { x: tileX, y: tileY } });
   } else {
-    update({ selectedAgent: null, agentDetail: null });
+    update({ selectedAgent: null, agentDetail: null, selectedTile: { x: tileX, y: tileY } });
   }
 }
 

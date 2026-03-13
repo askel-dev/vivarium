@@ -225,6 +225,25 @@ body {
   color: var(--text-dim);
 }
 
+#inspector-tile-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+#inspector-tile-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+#inspector-tile-pos {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+
 /* Section block */
 .inspector-section {
   margin-bottom: 0.75rem;
@@ -298,10 +317,11 @@ body {
   color: var(--text);
 }
 
-/* Lists (beliefs, memory, journal) */
+/* Lists (beliefs, memory, journal, notes) */
 #inspector-beliefs,
 #inspector-memory,
-#inspector-journal {
+#inspector-journal,
+#inspector-notes {
   list-style: none;
   max-height: 160px;
   overflow-y: auto;
@@ -310,12 +330,14 @@ body {
 
 #inspector-beliefs::-webkit-scrollbar,
 #inspector-memory::-webkit-scrollbar,
-#inspector-journal::-webkit-scrollbar {
+#inspector-journal::-webkit-scrollbar,
+#inspector-notes::-webkit-scrollbar {
   width: 4px;
 }
 #inspector-beliefs::-webkit-scrollbar-thumb,
 #inspector-memory::-webkit-scrollbar-thumb,
-#inspector-journal::-webkit-scrollbar-thumb {
+#inspector-journal::-webkit-scrollbar-thumb,
+#inspector-notes::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
 }

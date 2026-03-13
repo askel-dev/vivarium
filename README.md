@@ -56,6 +56,20 @@ pip install rich requests
 
 ### Run
 
+You can run Vivarium in two ways:
+
+**1. Web Interface (Recommended)**
+Double-click `run.bat` or execute it in your terminal (Windows):
+```cmd
+.\run.bat
+```
+For Mac/Linux:
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+**2. Terminal World Only**
 ```bash
 cd agent_world
 python main.py
