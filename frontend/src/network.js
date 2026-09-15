@@ -6,6 +6,10 @@
  */
 
 import { update, getState } from "./store.js";
+import { syncAgents, noteAgentPosition, forgetAgent } from "./renderer/interpolate.js";
+import { spawnFromEvents } from "./renderer/effects.js";
+
+const MAX_THOUGHTS = 60;
 
 /** @type {WebSocket|null} */
 let ws = null;
@@ -73,50 +77,131 @@ function connect() {
 
 function handleMessage(msg) {
   switch (msg.type) {
-    case "tick": {
-      const prev = getState().agents;
-      const existingDead = getState().deadAgents;
-
-      // Detect newly dead agents from events
-      const deathPattern = /^(.+) has collapsed and died!$/;
-      const newDead = [];
-      if (msg.events) {
-        for (const evt of msg.events) {
-          const match = typeof evt === "string" ? evt.match(deathPattern) : null;
-          if (match) {
-            const deadName = match[1];
-            // Avoid duplicates
-            if (!existingDead.some(d => d.name === deadName) &&
-                !newDead.some(d => d.name === deadName)) {
-              // Find last-known position from previous tick's agents
-              const lastKnown = prev.find(a => a.name === deadName);
-              newDead.push({
-                name: deadName,
-                x: lastKnown ? lastKnown.x : 0,
-                y: lastKnown ? lastKnown.y : 0,
-                tick: msg.tick,
-              });
-            }
-          }
-        }
-      }
-
+    // Full snapshot on connect — a mid-run reload paints immediately.
+    case "init": {
+      syncAgents(msg.agents || []);
       update({
         tick: msg.tick,
         timeOfDay: msg.time_of_day,
+        worldSize: { width: msg.width, height: msg.height },
+        ticksPerDay: msg.ticks_per_day || 50,
+        grid: msg.grid,
+        agents: msg.agents || [],
+        prevAgents: msg.agents || [],
+        relations: msg.relations || [],
+        deadAgents: msg.dead || [],
+        paused: !!msg.paused,
+        speed: typeof msg.speed === "number" ? msg.speed : getState().speed,
+      });
+      break;
+    }
+
+    // A tick has begun; we know the turn order before anyone has acted.
+    case "tick_start": {
+      update({
+        tick: msg.tick,
+        timeOfDay: msg.time_of_day,
+        turnOrder: msg.order || [],
+        turnIndex: 0,
+      });
+      break;
+    }
+
+    // An agent is blocked on the LLM. This is the signal that keeps the screen
+    // alive through the many seconds the model takes to answer.
+    case "agent_thinking": {
+      update({ thinkingAgent: msg.name, turnIndex: msg.index || 0 });
+      break;
+    }
+
+    // An agent's decision landed. Patch just that agent so it moves now,
+    // rather than teleporting with everyone else at tick end.
+    case "agent_acted": {
+      const s = getState();
+      const agents = s.agents.map((a) =>
+        a.name === msg.name
+          ? { ...a, x: msg.x, y: msg.y, energy: msg.energy,
+              inventory: msg.inventory, last_action: (msg.actions || [])[0] || "wait" }
+          : a
+      );
+      noteAgentPosition(msg.name, msg.x, msg.y);
+
+      // Pull the spoken words out of the action payload so the renderer can
+      // show a speech bubble with what was actually said.
+      const speakArgs = (msg.action_data || {}).speak;
+      const feed = [...s.thoughtFeed, {
+        name: msg.name,
+        thought: msg.thought,
+        actions: msg.actions || [],
+        speech: speakArgs && speakArgs.message ? String(speakArgs.message) : null,
+        volume: speakArgs && speakArgs.volume ? String(speakArgs.volume) : null,
+        tick: msg.tick,
+        ts: performance.now(),
+      }].slice(-MAX_THOUGHTS);
+
+      spawnFromEvents(msg.events || [], agents);
+
+      update({
+        agents,
+        thinkingAgent: null,
+        thoughtFeed: feed,
+        bubbleSeq: s.bubbleSeq + 1,
+        events: msg.events || [],
+      });
+      break;
+    }
+
+    case "agent_died": {
+      const s = getState();
+      if (!s.deadAgents.some((d) => d.name === msg.name)) {
+        update({
+          deadAgents: [...s.deadAgents, {
+            name: msg.name, x: msg.x, y: msg.y, tick: msg.tick, cause: msg.cause,
+          }],
+        });
+      }
+      forgetAgent(msg.name);
+      break;
+    }
+
+    // End-of-tick reconciliation: authoritative grid, energy drain, relations.
+    case "tick": {
+      const prev = getState().agents;
+      syncAgents(msg.agents || []);
+      // `structured` here is only the post-agent tail (starvation deaths);
+      // everything else already arrived with its agent_acted message.
+      const tail = msg.structured || [];
+      if (tail.length) spawnFromEvents(tail, msg.agents || []);
+      update({
+        tick: msg.tick,
+        timeOfDay: msg.time_of_day,
+        worldSize: { width: msg.width, height: msg.height },
         grid: msg.grid,
         prevAgents: prev,
         agents: msg.agents,
         tickTimestamp: performance.now(),
-        events: msg.events,
-        deadAgents: newDead.length ? [...existingDead, ...newDead] : existingDead,
+        relations: msg.relations || [],
+        thinkingAgent: null,
+        events: tail,
       });
       break;
     }
+
+    case "control_state": {
+      update({ paused: !!msg.paused, speed: msg.speed });
+      break;
+    }
+
+    case "session_end": {
+      update({ sessionEnd: msg, thinkingAgent: null });
+      break;
+    }
+
     case "agent_detail": {
       update({ agentDetail: msg });
       break;
     }
+
     default:
       console.log("[ws] unknown message type:", msg.type);
   }

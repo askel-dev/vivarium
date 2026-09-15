@@ -1,20 +1,29 @@
 """
 Story generation — produces a narrative summary at the end of a simulation run.
-Uses the Anthropic API (Claude Sonnet) for high-quality creative writing.
+
+Narration runs on the same local Ollama model the simulation uses, so a run
+costs nothing. Set STORY_BACKEND = "anthropic" in config.py to use the paid
+Anthropic API instead, which writes a noticeably better story.
 """
 
 import json
 import os
 import re
 
-from config import STORY_MODEL, STORY_MAX_TOKENS, STORY_ENABLED
+from config import (
+    STORY_MODEL, STORY_MAX_TOKENS, STORY_ENABLED,
+    STORY_BACKEND, STORY_TEMPERATURE,
+)
 
 # Event types worth including in the narrative
 HIGH_PRIORITY = {"death", "speech", "attack", "steal", "push", "kill_witness"}
 MEDIUM_PRIORITY = {"build", "write_note", "journal_compression"}
 
-# Keywords in action_result events that indicate hostile actions
+# Keywords in action_result events that indicate hostile actions.
+# Builds and notes are included too: the logger never emits "build"/"write_note"
+# event types, so without these they would be invisible to the narrator.
 HOSTILE_KEYWORDS = {"stole", "attacked", "pushed", "killed", "steal", "attack", "push"}
+NOTABLE_KEYWORDS = HOSTILE_KEYWORDS | {"built", "wrote a note", "destroyed", "chopped"}
 
 NARRATION_PROMPT = """\
 You are a literary narrator. Write a short story (under 200 words) about what happened in a small survival world.
@@ -22,6 +31,8 @@ You are a literary narrator. Write a short story (under 200 words) about what ha
 Write it as a narrative — atmospheric, character-driven, with dramatic tension. This is a story, not a summary or a report. Use vivid language. Pick the single most compelling thread (a betrayal, a rivalry, a desperate last stand, an unlikely alliance) and build the story around it. You don't need to mention every event — focus on what makes the best story.
 
 Past tense, third person. No dialogue tags like "he said" — weave speech naturally into the narrative or paraphrase it.
+
+Never mention tick numbers or grid coordinates. They are scaffolding for you, not part of the story. Write only the story itself — no title, no preamble, no commentary.
 
 The characters:
 {character_block}
@@ -38,8 +49,9 @@ def _classify_action_result(event: dict) -> str | None:
 
     if action_type in ("steal", "attack", "push"):
         return action_type
-    for keyword in HOSTILE_KEYWORDS:
-        if keyword in results_text.lower():
+    low = results_text.lower()
+    for keyword in NOTABLE_KEYWORDS:
+        if keyword in low:
             return keyword
     return None
 
@@ -81,6 +93,16 @@ def filter_events_for_story(events: list[dict]) -> list[dict]:
     remaining = 50 - len(filtered)
     if remaining > 0:
         filtered.extend(medium[:remaining])
+
+    # A run where nobody fought, spoke or built produced no story at all, which
+    # now reads as a failure in the end-of-run overlay. Fall back to a thin
+    # sample of ordinary actions spread across the run so a quiet world still
+    # gets narrated — as a quiet story.
+    if not filtered:
+        actions = [e for e in events if e.get("event") == "action_result"]
+        if actions:
+            step = max(1, len(actions) // 30)
+            filtered = actions[::step][:30]
 
     filtered.sort(key=lambda e: e.get("tick", 0))
     return filtered
@@ -158,11 +180,6 @@ def generate_story(event_log_path: str, agents_final_state: list[dict]) -> str |
     if not STORY_ENABLED:
         return None
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("\n[STORY] Set ANTHROPIC_API_KEY environment variable to enable end-of-run story generation.")
-        return None
-
     # Load and filter events
     events = _load_events(event_log_path)
     filtered = filter_events_for_story(events)
@@ -179,7 +196,27 @@ def generate_story(event_log_path: str, agents_final_state: list[dict]) -> str |
         event_block=event_block,
     )
 
-    # Call Anthropic API
+    if STORY_BACKEND == "anthropic":
+        return _narrate_anthropic(prompt_text)
+    return _narrate_ollama(prompt_text)
+
+
+def _narrate_ollama(prompt_text: str) -> str | None:
+    """Narrate with the local model. Free, offline, lower quality."""
+    from llm import narrate
+
+    print("\n[STORY] Writing the story locally…")
+    story = narrate(prompt_text, STORY_MAX_TOKENS, STORY_TEMPERATURE)
+    return story or None
+
+
+def _narrate_anthropic(prompt_text: str) -> str | None:
+    """Narrate with the Anthropic API. Opt-in — this is a paid call."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("\n[STORY] STORY_BACKEND is 'anthropic' but ANTHROPIC_API_KEY is not set.")
+        return None
+
     try:
         from anthropic import Anthropic
 
@@ -189,7 +226,9 @@ def generate_story(event_log_path: str, agents_final_state: list[dict]) -> str |
             max_tokens=STORY_MAX_TOKENS,
             messages=[{"role": "user", "content": prompt_text}],
         )
-        return response.content[0].text
+        # Current models return thinking blocks ahead of the prose, so pick the
+        # text block out rather than indexing content[0].
+        return next((b.text for b in response.content if b.type == "text"), None)
     except Exception as e:
         print(f"[STORY] API call failed: {e}")
         return None

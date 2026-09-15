@@ -21,6 +21,13 @@
   --purple:    #bd93f9;
   --pink:      #ff79c6;
   --border:    rgba(255, 255, 255, 0.08);
+
+  /* Panel widths — referenced by the event log's width and by camera.js's
+     framing insets, so they live in one place rather than three. */
+  --inspector-w: 320px;
+  --roster-w:    216px;
+  --controls-h:  48px;
+
   --radius:    8px;
   --radius-sm: 4px;
   --transition: 0.2s ease;
@@ -103,7 +110,7 @@ body {
   position: absolute;
   top: 0;
   right: 0;
-  width: 320px;
+  width: var(--inspector-w);
   height: 100%;
   background: var(--surface);
   backdrop-filter: blur(var(--panel-blur));
@@ -363,9 +370,9 @@ body {
 
 #event-log {
   position: absolute;
-  bottom: 48px; /* above controls bar */
-  left: 0;
-  width: calc(100% - 320px); /* respect inspector width */
+  bottom: var(--controls-h); /* above controls bar */
+  left: var(--roster-w);
+  width: calc(100% - var(--inspector-w) - var(--roster-w));
   max-height: 200px;
   background: var(--surface);
   backdrop-filter: blur(var(--panel-blur));
@@ -571,20 +578,544 @@ body {
 
 /* Selection highlight (pulsing ring on canvas is drawn in JS) */
 
-/* Responsive: hide inspector panel below 768px, stack event log */
-@media (max-width: 768px) {
+/* Responsive: stack the panels below 900px.
+   The inspector and the event log both used to sit at bottom:48px, so they
+   overlapped; the log is now stacked above the inspector instead. */
+@media (max-width: 900px) {
+  :root {
+    --roster-w: 0px;
+  }
+
+  #roster {
+    display: none;
+  }
+
   #inspector {
     width: 100%;
-    height: 50%;
+    height: 45%;
     top: auto;
-    bottom: 48px;
+    bottom: var(--controls-h);
     border-left: none;
     border-top: 1px solid var(--border);
   }
-  
+
   #event-log {
     width: 100%;
+    left: 0;
     max-height: 120px;
-    bottom: 48px;
+    bottom: calc(45% + var(--controls-h));
   }
+
+  #controls {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.4rem 0.6rem;
+    gap: 0.5rem;
+  }
+}
+
+/* ============================================================
+   AGENT ROSTER RAIL (left)
+   ============================================================ */
+
+#roster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--roster-w);
+  height: calc(100% - var(--controls-h));
+  background: var(--surface);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border-right: 1px solid var(--border);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+}
+
+#roster-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.75rem 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  /* Clear of the connection pill in the HUD */
+  margin-top: 2.25rem;
+}
+
+#roster-header h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+#roster-count {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+#roster-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.roster-card {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.roster-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.roster-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* The agent the simulation is currently blocked on. */
+.roster-card.thinking {
+  border-color: var(--purple);
+  animation: roster-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes roster-pulse {
+  0%, 100% { background: rgba(189, 147, 249, 0.08); }
+  50%      { background: rgba(189, 147, 249, 0.22); }
+}
+
+.roster-card.dead {
+  opacity: 0.4;
+  filter: saturate(0.3);
+}
+
+.roster-chip {
+  width: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.roster-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.roster-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.roster-name {
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-energy-text {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.roster-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  margin: 0.3rem 0;
+}
+
+.roster-bar-fill {
+  height: 100%;
+  width: 0;
+  transition: width var(--transition), background var(--transition);
+}
+
+.roster-inv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.roster-inv-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 0 0.25rem;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-dim);
+}
+
+.roster-inv-badge.food  { color: var(--success); }
+.roster-inv-badge.wood  { color: #c69c6d; }
+.roster-inv-badge.stone { color: #cdcdd6; }
+
+.roster-status {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-status.is-thinking {
+  color: var(--purple);
+}
+
+/* ============================================================
+   EVENT LOG - typed entries and filters
+   ============================================================ */
+
+#event-log-filters {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.filter-chip.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip.noise.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.event-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.1rem 0.2rem;
+  border-radius: 2px;
+}
+
+.event-entry.clickable {
+  cursor: pointer;
+}
+
+.event-entry.clickable:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.event-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Severity accents - a murder should not look like a footstep. */
+.event-entry.type-death {
+  background: rgba(255, 51, 51, 0.14);
+  color: #ffdddd;
+}
+
+.event-entry.type-attack,
+.event-entry.type-push  { color: #ffb3b3; }
+.event-entry.type-steal { color: var(--orange); }
+.event-entry.type-speak { color: var(--accent); }
+.event-entry.type-build { color: var(--warning); }
+.event-entry.type-write { color: #ffffe0; }
+
+.event-entry.type-invalid,
+.event-entry.type-wait,
+.event-entry.type-move {
+  color: #5a6070;
+  font-style: italic;
+}
+
+/* ============================================================
+   INSPECTOR - additions
+   ============================================================ */
+
+.inspector-section.inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+#inspector-thought {
+  background: rgba(0, 0, 0, 0.28);
+  border-left: 2px solid var(--purple);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.55rem;
+}
+
+.thought-text {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #c8d0e2;
+  font-style: italic;
+}
+
+.thought-speech {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+.goal-text {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--warning);
+}
+
+.relation-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  padding: 0.1rem 0.4rem;
+  margin: 0.1rem 0.15rem 0 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.relation-badge.hostile  { color: var(--danger);  background: rgba(255, 85, 85, 0.16); }
+.relation-badge.wary     { color: var(--orange);  background: rgba(255, 184, 108, 0.14); }
+.relation-badge.positive { color: var(--success); background: rgba(80, 250, 123, 0.14); }
+.relation-badge.neutral  { color: var(--text-dim); }
+
+.tile-terrain {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  text-transform: capitalize;
+}
+
+.tile-terrain.terrain-grass { color: #7cb342; }
+.tile-terrain.terrain-water { color: #4f9fe8; }
+.tile-terrain.terrain-tree  { color: #4c8b2b; }
+.tile-terrain.terrain-stone { color: #cdcdd6; }
+
+.tile-structure {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--warning);
+  text-transform: capitalize;
+}
+
+.tile-structure-by {
+  font-size: 0.68rem;
+}
+
+/* ============================================================
+   CONTROLS - additions
+   ============================================================ */
+
+.toggle-btn {
+  font-family: var(--font);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.toggle-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tick-thinking {
+  color: var(--purple);
+  font-style: italic;
+}
+
+/* ============================================================
+   END-OF-RUN STORY OVERLAY
+   ============================================================ */
+
+#story-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(5, 6, 14, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.4s ease;
+}
+
+#story-overlay.hidden {
+  display: none;
+}
+
+#story-modal {
+  position: relative;
+  width: min(680px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #161a30, #0e0e1a);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 2.25rem 2.25rem;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+}
+
+#story-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+#story-close:hover { color: var(--text); }
+
+#story-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+#story-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+#story-prose {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #d6dbe8;
+  white-space: pre-wrap;
+  min-height: 5rem;
+  cursor: pointer;
+  border-left: 2px solid var(--purple);
+  padding-left: 1rem;
+}
+
+#story-prose.story-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  border-left-color: var(--border);
+}
+
+.story-cast-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 1.75rem 0 0.6rem;
+}
+
+.story-cast-row {
+  display: grid;
+  grid-template-columns: 4px auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.story-cast-chip {
+  width: 4px;
+  height: 100%;
+  min-height: 16px;
+  border-radius: 2px;
+}
+
+.story-cast-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.story-cast-fate {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  justify-self: end;
+}
+
+.story-cast-fate.survived { color: var(--success); }
+.story-cast-fate.died     { color: var(--danger); }
+
+.story-cast-traits {
+  grid-column: 2 / -1;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--text-dim);
 }

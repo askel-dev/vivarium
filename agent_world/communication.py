@@ -1,4 +1,5 @@
 from config import WHISPER_RANGE, TALK_RANGE, SHOUT_RANGE
+from actions import sink_context, sink_emit
 
 VOLUME_RANGES = {
     "whisper": WHISPER_RANGE,
@@ -15,6 +16,7 @@ def deliver_speech(speaker, world, event_log: list, log=None, tick=0):
     del speaker._pending_speech_out
 
     speech_event = f"{speaker.name} {volume}s: '{message}'"
+    sink_context(event_log, speaker, "speak")
     event_log.append(speech_event)
 
     max_dist = VOLUME_RANGES.get(volume, TALK_RANGE)
@@ -29,6 +31,11 @@ def deliver_speech(speaker, world, event_log: list, log=None, tick=0):
             agent._pending_speech.append(speech_event)
             agent.add_to_working_memory(speech_event)
             heard_by.append(agent.name)
+
+    # Volume and audience were already computed here and then thrown away;
+    # the renderer uses them for bubble weight and the speech range ring.
+    sink_emit(event_log, message=message, volume=volume,
+              heard_by=heard_by, range=max_dist)
 
     if log is not None:
         log.log_speech(speaker.name, tick, message, volume, heard_by)

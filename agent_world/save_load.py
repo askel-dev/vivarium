@@ -30,6 +30,7 @@ def save_world(world: World, path: str):
         data["agents"].append({
             "name": agent.name,
             "personality": agent.personality,
+            "private_goal": agent.private_goal,
             "x": agent.x,
             "y": agent.y,
             "energy": agent.energy,
@@ -71,6 +72,7 @@ def load_world(path: str) -> World:
             personality=ad["personality"],
             x=ad["x"],
             y=ad["y"],
+            private_goal=ad.get("private_goal", "Survive and learn about the world."),
             energy=ad["energy"],
             inventory=ad["inventory"],
             working_memory=ad["working_memory"],

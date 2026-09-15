@@ -5,7 +5,7 @@ import sys
 import time
 import threading
 
-from world import generate_world, load_world_from_map
+from world import generate_world, load_world_from_map, spawn_regrowth_food
 from actions import execute_action
 from perception import build_perception, read_notes_on_tile
 from prompts import build_prompt, SYSTEM_PROMPT
@@ -180,9 +180,10 @@ def run(world, args, display_fn):
                 "personality": agent.personality,
                 "tick": world.tick_count,
             })
-            # Broadcast death to all surviving agents
             for survivor in world.agents:
                 survivor.add_to_working_memory(f"{agent.name} has collapsed and died.")
+
+        spawn_regrowth_food(world)
 
         if not world.agents:
             tick_events.append("All agents have perished. Simulation ended.")

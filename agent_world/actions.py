@@ -1,6 +1,75 @@
 from world import Item, Structure, Note
 from config import STEAL_ENERGY_COST, ATTACK_ENERGY_COST, ATTACK_DAMAGE, PUSH_ENERGY_COST, VIEW_RANGE
 
+
+# ---------------------------------------------------------------------------
+# Structured event channel
+# ---------------------------------------------------------------------------
+
+class EventSink(list):
+    """
+    A list of third-person prose event strings that *also* records a structured
+    object for each one.
+
+    Handlers keep calling ``event_log.append(prose)`` exactly as before, so the
+    terminal runner and the logger are unaffected.  The sink tags each string
+    with whatever context ``execute_action`` set for the action in flight, which
+    gives the frontend typed events without anyone regex-parsing English prose.
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.structured = []
+        self._agent = None
+        self._type = "misc"
+
+    def set_context(self, agent, action_type):
+        self._agent = agent
+        self._type = action_type
+
+    def append(self, prose):
+        super().append(prose)
+        # Position is read at append time, so a `move` event carries the tile the
+        # agent ended up on — which is where the camera and floaters want to go.
+        evt = {
+            "type": "invalid" if prose.startswith("[INVALID]") else self._type,
+            "actor": self._agent.name if self._agent else None,
+            "x": self._agent.x if self._agent else None,
+            "y": self._agent.y if self._agent else None,
+            "text": prose,
+        }
+        self.structured.append(evt)
+        return evt
+
+    def record(self, **fields):
+        """Record a structured event that has no prose line of its own."""
+        self.structured.append(fields)
+        return fields
+
+    def emit(self, **fields):
+        """Enrich the most recently recorded structured event."""
+        if self.structured:
+            self.structured[-1].update(fields)
+
+
+def sink_context(event_log, agent, action_type):
+    """Set the sink's action context. No-op for a plain list."""
+    if isinstance(event_log, EventSink):
+        event_log.set_context(agent, action_type)
+
+
+def sink_emit(event_log, **fields):
+    """Enrich the last structured event. No-op for a plain list."""
+    if isinstance(event_log, EventSink):
+        event_log.emit(**fields)
+
+
+def sink_record(event_log, **fields):
+    """Record a standalone structured event. No-op for a plain list."""
+    if isinstance(event_log, EventSink):
+        event_log.record(**fields)
+
+
 # Build costs: {material: {resource: amount}}
 BUILD_COSTS = {
     "wall":     {"wood": 2},
@@ -30,44 +99,47 @@ def _apply_direction(x, y, direction):
 def execute_action(agent, action_data: dict, world, event_log: list) -> list:
     """Validate and execute multiple actions from a single response. Returns a list of event strings."""
     events = []
-    
-    # Check each known action type
-    action_handlers = {
-        "move": _move,
-        "pick_up": _pick_up,
-        "eat": _eat,
-        "chop": _chop,
-        "build": _build,
-        "destroy": _destroy,
-        "write": _write,
-        "speak": _speak,
-        "wait": _wait,
-        "steal": _steal,
-        "attack": _attack,
-        "push": _push,
-    }
-    
+    is_sink = isinstance(event_log, EventSink)
+
     acted = False
     for action_key, data in action_data.items():
-        if action_key in action_handlers:
-            handler = action_handlers[action_key]
+        if action_key in ACTION_HANDLERS:
+            handler = ACTION_HANDLERS[action_key]
             acted = True
-            
+
             # If the value is a dict, use it. Some actions like 'eat', 'wait', 'destroy' might just have {} or no meaningful data.
             # But the LLM often provides a dict.
             data_dict = data if isinstance(data, dict) else {}
-            
+
+            sink_context(event_log, agent, action_key)
+            before = len(event_log.structured) if is_sink else 0
+
             if action_key == "wait":
                 event = handler(agent, event_log)
             else:
                 event = handler(agent, data_dict, world, event_log)
             events.append(event)
-            
+
+            # Some handlers succeed without writing a third-person line (wait
+            # and a few no-ops). Synthesise one so every action is visible.
+            # `speak` is excluded: communication.deliver_speech emits the real
+            # event moments later, and two entries would double-log it.
+            if is_sink and action_key != "speak" and len(event_log.structured) == before:
+                event_log.record(
+                    type=action_key,
+                    actor=agent.name,
+                    x=agent.x,
+                    y=agent.y,
+                    text=f"{agent.name}: {event}",
+                    quiet=True,
+                )
+
     # Fallback if no valid actions were found
     if not acted:
+        sink_context(event_log, agent, "invalid")
         event_log.append(f"[INVALID] {agent.name} provided no valid actions, defaulting to wait.")
         events.append(_wait(agent, event_log))
-        
+
     return events
 
 
@@ -94,6 +166,7 @@ def _move(agent, data, world, event_log):
     agent.x, agent.y = nx, ny
     event = f"I moved {direction}."
     event_log.append(f"{agent.name} moved {direction} to ({nx}, {ny}).")
+    sink_emit(event_log, direction=direction, quiet=True)
     return event
 
 
@@ -106,6 +179,7 @@ def _pick_up(agent, data, world, event_log):
             agent.inventory[item_type] = agent.inventory.get(item_type, 0) + item.quantity
             event = f"I picked up {item.type}."
             event_log.append(f"{agent.name} picked up {item.type} at ({agent.x}, {agent.y}).")
+            sink_emit(event_log, item=item.type, float_text=f"+{item.type}")
             # Update belief: food location
             if item_type == "food":
                 agent.add_belief(f"There is food near ({agent.x}, {agent.y}).")
@@ -122,9 +196,12 @@ def _eat(agent, data, world, event_log):
         event_log.append(f"[INVALID] {agent.name} tried to eat but has no food.")
         return event
     agent.inventory["food"] -= 1
+    before = agent.energy
     agent.energy = min(agent.energy + ENERGY_FROM_FOOD, MAX_ENERGY)
     event = f"I ate food. Energy: {agent.energy}/100."
     event_log.append(f"{agent.name} ate food. Energy now {agent.energy}.")
+    sink_emit(event_log, delta={"energy": agent.energy - before},
+              float_text=f"+{agent.energy - before}")
     return event
 
 
@@ -146,6 +223,7 @@ def _chop(agent, data, world, event_log):
     agent.inventory["wood"] = agent.inventory.get("wood", 0) + 1
     event = f"I chopped a tree to the {direction} and got 1 wood."
     event_log.append(f"{agent.name} chopped a tree at ({tx}, {ty}). Got 1 wood.")
+    sink_emit(event_log, tx=tx, ty=ty, float_text="+wood")
     return event
 
 
@@ -175,6 +253,7 @@ def _build(agent, data, world, event_log):
     agent.add_belief(f"I built a {material} at ({agent.x}, {agent.y}).")
     event = f"I built a {material} at ({agent.x}, {agent.y})."
     event_log.append(f"{agent.name} built a {material} at ({agent.x}, {agent.y}).")
+    sink_emit(event_log, material=material)
     return event
 
 
@@ -188,6 +267,7 @@ def _destroy(agent, data, world, event_log):
     tile.structure = None
     event = f"I destroyed the {old} at ({agent.x}, {agent.y})."
     event_log.append(f"{agent.name} destroyed a {old} at ({agent.x}, {agent.y}).")
+    sink_emit(event_log, material=old)
     return event
 
 
@@ -200,6 +280,7 @@ def _write(agent, data, world, event_log):
     tile.notes.append(Note(author=agent.name, content=message, tick=world.tick_count))
     event = f"I wrote a note: '{message}'."
     event_log.append(f"{agent.name} wrote a note at ({agent.x}, {agent.y}).")
+    sink_emit(event_log, message=message)
     return event
 
 
@@ -274,11 +355,24 @@ def _handle_death(victim, killer, world, event_log, cause="attack"):
             witness.add_belief(f"{killer.name} killed {victim.name}.")
 
     # Remove from world
+    vx, vy = victim.x, victim.y
     victim.energy = 0
     if victim in world.agents:
         world.agents.remove(victim)
 
     event_log.append(f"{victim.name} has been killed by {killer.name}!")
+    # Override the attacker's action context — this is a death, and it belongs
+    # to the victim's tile so the gravestone and skull burst land correctly.
+    sink_emit(
+        event_log,
+        type="death",
+        actor=victim.name,
+        killer=killer.name,
+        cause=cause,
+        x=vx,
+        y=vy,
+        float_text="DEAD",
+    )
 
 
 # --- Hostile actions ---
@@ -316,6 +410,8 @@ def _steal(agent, data, world, event_log):
 
     event = f"I stole {item_type} from {target_name}."
     event_log.append(f"{agent.name} stole {item_type} from {target_name}.")
+    sink_emit(event_log, target=target_name, tx=target.x, ty=target.y,
+              item=item_type, float_text=f"-{item_type}")
     return event
 
 
@@ -347,6 +443,8 @@ def _attack(agent, data, world, event_log):
 
     event = f"I attacked {target_name}. They look weakened."
     event_log.append(f"{agent.name} attacked {target_name}. {target_name} lost {ATTACK_DAMAGE} energy.")
+    sink_emit(event_log, target=target_name, tx=target.x, ty=target.y,
+              delta={"energy": -ATTACK_DAMAGE}, float_text=f"-{ATTACK_DAMAGE}")
     return event
 
 
@@ -402,4 +500,23 @@ def _push(agent, data, world, event_log):
 
     event = f"I pushed {target_name} {direction}."
     event_log.append(f"{agent.name} pushed {target_name} {direction}.")
+    sink_emit(event_log, target=target_name, tx=nx, ty=ny, direction=direction)
     return event
+
+
+# Dispatch table — also imported by main_server.py so the server and the
+# executor agree on exactly which response keys count as actions.
+ACTION_HANDLERS = {
+    "move": _move,
+    "pick_up": _pick_up,
+    "eat": _eat,
+    "chop": _chop,
+    "build": _build,
+    "destroy": _destroy,
+    "write": _write,
+    "speak": _speak,
+    "wait": _wait,
+    "steal": _steal,
+    "attack": _attack,
+    "push": _push,
+}

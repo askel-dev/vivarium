@@ -8,6 +8,7 @@ class Agent:
     personality: str          # Archetype description (2-3 sentences)
     x: int
     y: int
+    private_goal: str = "Survive and learn about the world."
     energy: int = STARTING_ENERGY
     inventory: dict = field(default_factory=lambda: {"food": 0, "wood": 0, "stone": 0})
 

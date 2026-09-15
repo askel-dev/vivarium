@@ -35,7 +35,7 @@ Set it in motion. Watch what emerges.
 2. **Ollama** — Install from [ollama.com](https://ollama.com)
 3. Pull the model:
    ```bash
-   ollama pull llama3.1:8b
+  ollama pull qwen3:8b
    ```
 
 ### Setup

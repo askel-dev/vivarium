@@ -1,11 +1,11 @@
 @echo off
 echo Starting Vivarium Backend...
 IF EXIST "venv\Scripts\activate.bat" (
-    start cmd /k "venv\Scripts\activate && cd agent_world && python main_server.py"
+    start cmd /k "venv\Scripts\activate && cd agent_world && python main_server.py --ai-digest"
 ) ELSE IF EXIST ".venv\Scripts\activate.bat" (
-    start cmd /k ".venv\Scripts\activate && cd agent_world && python main_server.py"
+    start cmd /k ".venv\Scripts\activate && cd agent_world && python main_server.py --ai-digest"
 ) ELSE (
-    start cmd /k "cd agent_world && python main_server.py"
+    start cmd /k "cd agent_world && python main_server.py --ai-digest"
 )
 
 echo Starting Vivarium Frontend...

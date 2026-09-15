@@ -17,6 +17,15 @@
       <div id="status" class="disconnected">Reconnecting…</div>
     </div>
 
+    <!-- Agent roster rail (left) -->
+    <div id="roster">
+      <div id="roster-header">
+        <h3>Agents</h3>
+        <span id="roster-count"></span>
+      </div>
+      <div id="roster-body"></div>
+    </div>
+
     <!-- Agent Inspector (right panel) -->
     <div id="inspector">
       <div id="inspector-header">
@@ -28,6 +37,7 @@
           <span class="inspector-icon">🔍</span>
           <p>Click an agent or tile to inspect</p>
         </div>
+
         <div id="inspector-content" class="hidden">
           <div id="inspector-name-row">
             <span id="inspector-agent-name"></span>
@@ -42,9 +52,29 @@
             </div>
           </div>
 
+          <div class="inspector-section">
+            <label>Latest Thought</label>
+            <div id="inspector-thought"></div>
+          </div>
+
+          <div class="inspector-section inline-row">
+            <label>Last Action</label>
+            <span id="inspector-last-action" class="pill"></span>
+          </div>
+
           <div id="inspector-inventory-section" class="inspector-section">
             <label>Inventory</label>
             <div id="inspector-inventory"></div>
+          </div>
+
+          <div class="inspector-section">
+            <label>Private Goal</label>
+            <p id="inspector-goal" class="goal-text"></p>
+          </div>
+
+          <div class="inspector-section">
+            <label>Opinions</label>
+            <div id="inspector-relations"></div>
           </div>
 
           <div id="inspector-personality-section" class="inspector-section">
@@ -70,8 +100,23 @@
 
         <div id="inspector-tile-content" class="hidden">
           <div id="inspector-tile-name-row">
-            <span id="inspector-tile-name">Tile Info</span>
+            <span id="inspector-tile-name">Tile</span>
             <span id="inspector-tile-pos"></span>
+          </div>
+
+          <div class="inspector-section inline-row">
+            <label>Terrain</label>
+            <span id="inspector-tile-terrain" class="tile-terrain"></span>
+          </div>
+
+          <div class="inspector-section">
+            <label>Items</label>
+            <div id="inspector-tile-items"></div>
+          </div>
+
+          <div class="inspector-section">
+            <label>Structure</label>
+            <div id="inspector-tile-structure"></div>
           </div>
 
           <div id="inspector-notes-section" class="inspector-section">
@@ -86,6 +131,7 @@
     <div id="event-log">
       <div id="event-log-header">
         <h3>Event Log</h3>
+        <div id="event-log-filters"></div>
         <span id="event-log-count"></span>
       </div>
       <div id="event-log-body"></div>
@@ -102,9 +148,24 @@
           <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" />
           <span id="speed-value">1.0×</span>
         </div>
+        <button id="btn-relations" class="toggle-btn" title="Show relationships (R)">
+          🕸 Relations
+        </button>
       </div>
       <div id="controls-right">
         <span id="tick-info">Waiting for first tick…</span>
+      </div>
+    </div>
+
+    <!-- End-of-run story -->
+    <div id="story-overlay" class="hidden">
+      <div id="story-modal">
+        <button id="story-close" title="Close">✕</button>
+        <h1 id="story-title"></h1>
+        <p id="story-subtitle"></p>
+        <div id="story-prose"></div>
+        <h2 class="story-cast-heading">The Cast</h2>
+        <div id="story-cast"></div>
       </div>
     </div>
 

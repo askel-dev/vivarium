@@ -1,7 +1,10 @@
 import random
 import json
 from dataclasses import dataclass, field
-from config import GRID_WIDTH, GRID_HEIGHT, INITIAL_FOOD_COUNT, FOOD_CLUSTER_CHANCE
+from config import (
+    GRID_WIDTH, GRID_HEIGHT, INITIAL_FOOD_COUNT, FOOD_CLUSTER_CHANCE,
+    FOOD_REGROWTH_CHANCE, MAX_FOOD_TOTAL
+)
 
 
 @dataclass
@@ -72,6 +75,45 @@ class World:
         return None
 
 
+def count_food(world: World) -> int:
+    total = 0
+    for row in world.grid:
+        for tile in row:
+            for item in tile.items:
+                if item.type == "food":
+                    total += item.quantity
+    return total
+
+
+def spawn_regrowth_food(world: World):
+    if random.random() > FOOD_REGROWTH_CHANCE:
+        return
+        
+    if count_food(world) >= MAX_FOOD_TOTAL:
+        return
+
+    # Find existing food to cluster around
+    placed_food_coords = []
+    for y in range(world.height):
+        for x in range(world.width):
+            for item in world.grid[y][x].items:
+                if item.type == "food" and item.quantity > 0:
+                    placed_food_coords.append((x, y))
+                    break
+
+    for _ in range(3):  # retry up to 3x to hit grass tile
+        if placed_food_coords and random.random() < FOOD_CLUSTER_CHANCE:
+            bx, by = random.choice(placed_food_coords)
+            x = max(0, min(world.width - 1, bx + random.randint(-2, 2)))
+            y = max(0, min(world.height - 1, by + random.randint(-2, 2)))
+        else:
+            x, y = random.randint(0, world.width - 1), random.randint(0, world.height - 1)
+
+        if world.grid[y][x].terrain == "grass":
+            world.grid[y][x].items.append(Item(type="food", quantity=1))
+            break
+
+
 def _random_walk(grid, start_x, start_y, steps, terrain, width, height):
     x, y = start_x, start_y
     placed = []
@@ -109,6 +151,17 @@ def _generate_traits() -> str:
         "You lie freely. Your notes and speech are calculated to manipulate.",
     ])
     return f"{desperation} {grudge} {social} {honesty}"
+
+
+def _generate_private_goal() -> str:
+    return random.choice([
+        "Build a shelter before the first night.",
+        "Stockpile at least 3 food and do not give it away lightly.",
+        "Find another agent and earn their trust through useful information.",
+        "Map nearby resources and leave one honest warning for others.",
+        "Stay independent: avoid attacking, stealing from, or depending on anyone.",
+        "Find a rival and make them fear challenging you.",
+    ])
 
 
 def generate_world(num_agents: int = 4) -> World:
@@ -190,7 +243,13 @@ def generate_world(num_agents: int = 4) -> World:
         name, base_personality = archetypes[i % len(archetypes)]
         traits = _generate_traits()
         personality = f"{base_personality}\n\n{traits}"
-        agent = Agent(name=name, personality=personality, x=x, y=y)
+        agent = Agent(
+            name=name,
+            personality=personality,
+            x=x,
+            y=y,
+            private_goal=_generate_private_goal(),
+        )
         world.agents.append(agent)
 
     return world
@@ -228,6 +287,12 @@ def load_world_from_map(map_path: str, num_agents: int = 4) -> World:
         name, base_personality = archetypes[i % len(archetypes)]
         traits = _generate_traits()
         personality = f"{base_personality}\n\n{traits}"
-        world.agents.append(Agent(name=name, personality=personality, x=pos["x"], y=pos["y"]))
+        world.agents.append(Agent(
+            name=name,
+            personality=personality,
+            x=pos["x"],
+            y=pos["y"],
+            private_goal=_generate_private_goal(),
+        ))
 
     return world

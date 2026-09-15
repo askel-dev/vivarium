@@ -14,7 +14,17 @@ const state = {
   agents: [],
   prevAgents: [],   // previous tick's agents for interpolation
   tickTimestamp: 0, // performance.now() when last tick arrived (for interpolation)
-  events: [],
+  events: [],       // structured event objects for the current tick
+  worldSize: null,  // { width, height } — sent on init, no longer inferred
+  ticksPerDay: 50,
+  relations: [],    // [{ from, to, sentiment }] social edges
+
+  // --- Live intra-tick state (the streaming protocol) ---
+  thinkingAgent: null,  // name of the agent currently waiting on the LLM
+  turnOrder: [],        // agent names in this tick's shuffled order
+  turnIndex: 0,         // how far through the order we are
+  thoughtFeed: [],      // [{ name, thought, actions, tick, ts }] newest last
+  bubbleSeq: 0,         // bumped whenever a new bubble should appear
 
   // --- On-demand detail (fetched per request) ---
   agentDetail: null, // full detail for inspected agent
@@ -25,7 +35,9 @@ const state = {
   selectedAgent: null,  // agent name string
   selectedTile: null,   // {x, y} or null
   hoveredAgent: null,   // agent name string (mouse hover)
-  deadAgents: [],       // [{ name, x, y, tick }] — persisted gravestones
+  deadAgents: [],       // [{ name, x, y, tick, cause }] — persisted gravestones
+  showRelations: false, // social overlay toggle (R)
+  sessionEnd: null,     // { tick, reason, story, cast } when the run ends
 };
 
 /** @type {Map<string, Set<function>>} */

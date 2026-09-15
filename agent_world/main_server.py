@@ -22,15 +22,22 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from world import generate_world, load_world_from_map, Item
-from actions import execute_action
+from world import generate_world, load_world_from_map, Item, spawn_regrowth_food
+from actions import execute_action, ACTION_HANDLERS, EventSink, sink_context, sink_emit
 from perception import build_perception, read_notes_on_tile
 from prompts import build_prompt, SYSTEM_PROMPT
 from llm import get_agent_action
 from communication import deliver_speech, clear_pending_speech, clear_agent_pending_speech
-from memory import maybe_compress_journal, maybe_summarize_working_memory, update_beliefs_from_tile, update_beliefs_from_agents
+from memory import (
+    maybe_compress_journal, maybe_summarize_working_memory,
+    update_beliefs_from_tile, update_beliefs_from_agents,
+    derive_relations, build_relation_edges,
+)
 from save_load import save_world, load_world
-from config import ENERGY_DRAIN_PER_TICK, SHELTER_DRAIN_REDUCTION, DEFAULT_TICK_SPEED, MAX_ENERGY
+from config import (
+    ENERGY_DRAIN_PER_TICK, SHELTER_DRAIN_REDUCTION, DEFAULT_TICK_SPEED,
+    MAX_ENERGY, TICKS_PER_DAY_CYCLE,
+)
 from logger import AgentLogger
 from story import generate_story, build_agent_summaries
 
@@ -46,6 +53,11 @@ stop_event = threading.Event()       # signal simulation to shut down
 speed_lock = threading.Lock()
 tick_speed: float = DEFAULT_TICK_SPEED
 
+# Gravestone roster — the world drops dead agents entirely, so the server keeps
+# its own record and replays it to clients that connect later.
+_dead_roster: list[dict] = []
+_session_end: dict | None = None
+
 
 def set_tick_speed(new_speed: float):
     global tick_speed
@@ -56,6 +68,20 @@ def set_tick_speed(new_speed: float):
 def get_tick_speed() -> float:
     with speed_lock:
         return tick_speed
+
+
+def push(payload: dict):
+    """Enqueue a message for broadcast to every connected client."""
+    tick_queue.put(payload)
+
+
+def control_state() -> dict:
+    """Authoritative pause/speed state, so clients never have to guess."""
+    return {
+        "type": "control_state",
+        "paused": not pause_event.is_set(),
+        "speed": get_tick_speed(),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -92,13 +118,24 @@ def serialize_agent(agent) -> dict:
         "max_energy": MAX_ENERGY,
         "inventory": dict(agent.inventory),
         "personality_archetype": archetype,
+        "private_goal": agent.private_goal,
         "last_action": None,  # filled in per-tick
         "alive": True,
         "recent_memory_preview": agent.working_memory[-3:] if agent.working_memory else [],
     }
 
 
-def build_tick_payload(world, events, last_actions) -> dict:
+def action_verbs(action_data: dict) -> list:
+    """
+    The action keys the executor will actually dispatch on.
+
+    Not `action_data["action"]` — llm._normalize_action_response deletes that
+    key whenever it was present, which is why last_action was always None.
+    """
+    return [k for k in action_data if k in ACTION_HANDLERS]
+
+
+def build_tick_payload(world, events, structured, last_actions) -> dict:
     agents = []
     for a in world.agents:
         data = serialize_agent(a)
@@ -108,10 +145,37 @@ def build_tick_payload(world, events, last_actions) -> dict:
         "type": "tick",
         "tick": world.tick_count,
         "time_of_day": world.time_of_day,
+        "width": world.width,
+        "height": world.height,
         "grid": serialize_grid(world),
         "agents": agents,
         "events": events,
+        "structured": structured,
+        "relations": build_relation_edges(world),
     }
+
+
+def build_init_payload(world) -> dict:
+    """
+    Full snapshot sent the moment a client connects.
+
+    Without this a browser that reloads mid-tick stares at a blank canvas until
+    the next tick lands, which can be a minute or more.
+    """
+    payload = {
+        "type": "init",
+        "tick": world.tick_count,
+        "time_of_day": world.time_of_day,
+        "width": world.width,
+        "height": world.height,
+        "grid": serialize_grid(world),
+        "agents": [serialize_agent(a) for a in world.agents],
+        "relations": build_relation_edges(world),
+        "dead": list(_dead_roster),
+        "ticks_per_day": TICKS_PER_DAY_CYCLE,
+    }
+    payload.update({k: v for k, v in control_state().items() if k != "type"})
+    return payload
 
 
 def build_agent_detail(agent) -> dict:
@@ -125,15 +189,38 @@ def build_agent_detail(agent) -> dict:
         "max_energy": MAX_ENERGY,
         "inventory": dict(agent.inventory),
         "personality": agent.personality,
+        "private_goal": agent.private_goal,
         "working_memory": list(agent.working_memory),
         "journal": list(agent.journal),
         "beliefs": list(agent.beliefs),
+        "relations": derive_relations(agent, _world_ref["world"]) if _world_ref["world"] else {},
     }
 
 
 # ---------------------------------------------------------------------------
 # Simulation thread
 # ---------------------------------------------------------------------------
+
+def announce_death(agent, tick: int, cause: str):
+    """
+    Record and broadcast a death.
+
+    Both death paths funnel through here: starvation in the drain phase and
+    combat kills inside actions._handle_death. The client used to infer deaths
+    by regex-matching one English sentence, which missed every kill.
+    """
+    if any(d["name"] == agent.name for d in _dead_roster):
+        return
+    record = {
+        "name": agent.name,
+        "x": agent.x,
+        "y": agent.y,
+        "tick": tick,
+        "cause": cause,
+    }
+    _dead_roster.append(record)
+    push({"type": "agent_died", **record})
+
 
 def simulation_loop(world, log: AgentLogger):
     """Run the simulation in a dedicated thread. Mirrors main.py's run()."""
@@ -148,7 +235,7 @@ def simulation_loop(world, log: AgentLogger):
         # --- TICK ---
         world.tick_count += 1
         world.update_time()
-        tick_events: list[str] = []
+        tick_events = EventSink()
         last_actions: dict[str, str] = {}
 
         log.log_tick_start(world.tick_count, world.time_of_day, len(world.agents))
@@ -156,7 +243,14 @@ def simulation_loop(world, log: AgentLogger):
         agents_this_tick = list(world.agents)
         random.shuffle(agents_this_tick)
 
-        for agent in agents_this_tick:
+        push({
+            "type": "tick_start",
+            "tick": world.tick_count,
+            "time_of_day": world.time_of_day,
+            "order": [a.name for a in agents_this_tick],
+        })
+
+        for index, agent in enumerate(agents_this_tick):
             if agent not in world.agents:
                 continue
 
@@ -172,18 +266,33 @@ def simulation_loop(world, log: AgentLogger):
             # Assemble prompt and call LLM
             prompt = build_prompt(agent, world, perception_text)
             log.log_prompt(agent.name, world.tick_count, prompt)
+
+            # Announce *before* the blocking call — this is what lets the UI
+            # animate through the many seconds the model takes to answer.
+            push({
+                "type": "agent_thinking",
+                "tick": world.tick_count,
+                "name": agent.name,
+                "x": agent.x,
+                "y": agent.y,
+                "index": index,
+                "total": len(agents_this_tick),
+            })
+
             try:
                 action_data = get_agent_action(SYSTEM_PROMPT, prompt)
             except SystemExit:
                 raise
             except Exception as e:
                 print(f"[LLM ERROR] {agent.name}: {e}")
-                action_data = {"action": "wait"}
+                action_data = {"wait": {}}
 
             log.log_llm_response(agent.name, world.tick_count, action_data)
-            last_actions[agent.name] = action_data.get("action", "wait")
+            verbs = action_verbs(action_data)
+            last_actions[agent.name] = verbs[0] if verbs else "wait"
 
             # Execute action
+            mark = len(tick_events.structured)
             events = execute_action(agent, action_data, world, tick_events)
             for event in events:
                 agent.add_to_working_memory(event)
@@ -198,6 +307,20 @@ def simulation_loop(world, log: AgentLogger):
 
             log.log_agent_state(agent, world.tick_count)
 
+            push({
+                "type": "agent_acted",
+                "tick": world.tick_count,
+                "name": agent.name,
+                "thought": action_data.get("thought"),
+                "actions": verbs,
+                "action_data": {k: v for k, v in action_data.items() if k != "thought"},
+                "x": agent.x,
+                "y": agent.y,
+                "energy": agent.energy,
+                "inventory": dict(agent.inventory),
+                "events": tick_events.structured[mark:],
+            })
+
         # Track combat deaths
         known_dead = {d["name"] for d in all_dead_agents}
         for agent in agents_this_tick:
@@ -207,6 +330,12 @@ def simulation_loop(world, log: AgentLogger):
                     "personality": agent.personality,
                     "tick": world.tick_count,
                 })
+                announce_death(agent, world.tick_count, "killed")
+
+        # Everything from here on happens after the last agent acted, so it was
+        # never included in a per-agent `agent_acted` message. The tick payload
+        # carries this tail so starvation deaths still reach the event log.
+        tail_mark = len(tick_events.structured)
 
         # Passive energy drain
         dead_agents = []
@@ -216,7 +345,9 @@ def simulation_loop(world, log: AgentLogger):
                 drain -= SHELTER_DRAIN_REDUCTION
             agent.energy -= max(1, drain)
             if agent.energy <= 0:
+                sink_context(tick_events, agent, "death")
                 tick_events.append(f"{agent.name} has collapsed and died!")
+                sink_emit(tick_events, cause="starvation", float_text="DEAD")
                 dead_agents.append(agent)
 
         for agent in dead_agents:
@@ -232,12 +363,16 @@ def simulation_loop(world, log: AgentLogger):
                 "personality": agent.personality,
                 "tick": world.tick_count,
             })
+            announce_death(agent, world.tick_count, "starvation")
             for survivor in world.agents:
                 survivor.add_to_working_memory(f"{agent.name} has collapsed and died.")
 
+        spawn_regrowth_food(world)
+
         # Enqueue tick payload for broadcast
-        payload = build_tick_payload(world, tick_events, last_actions)
-        tick_queue.put(payload)
+        push(build_tick_payload(
+            world, list(tick_events), tick_events.structured[tail_mark:], last_actions
+        ))
 
         if not world.agents:
             log.log_tick_end(world.tick_count, tick_events)
@@ -250,6 +385,16 @@ def simulation_loop(world, log: AgentLogger):
                 with open(story_path, "w", encoding="utf-8") as f:
                     f.write(story)
                 print(f"\nStory saved to {story_path}")
+
+            global _session_end
+            _session_end = {
+                "type": "session_end",
+                "tick": world.tick_count,
+                "reason": "All agents perished",
+                "story": story,
+                "cast": summaries,
+            }
+            push(_session_end)
             stop_event.set()
             break
 
@@ -279,6 +424,15 @@ _world_ref: dict = {"world": None}   # mutable container so ws handler can acces
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     clients.add(ws)
+
+    # Snapshot first, so a client that connects or reloads mid-tick paints
+    # immediately instead of waiting out the rest of the tick.
+    world = _world_ref["world"]
+    if world is not None:
+        await ws.send_text(json.dumps(build_init_payload(world)))
+        if _session_end is not None:
+            await ws.send_text(json.dumps(_session_end))
+
     try:
         while True:
             raw = await ws.receive_text()
@@ -291,12 +445,15 @@ async def websocket_endpoint(ws: WebSocket):
 
             if msg_type == "pause":
                 pause_event.clear()
+                push(control_state())
             elif msg_type == "resume":
                 pause_event.set()
+                push(control_state())
             elif msg_type == "set_speed":
                 speed = msg.get("speed")
                 if isinstance(speed, (int, float)):
                     set_tick_speed(float(speed))
+                    push(control_state())
             elif msg_type == "request_agent_detail":
                 name = msg.get("name")
                 world = _world_ref["world"]
@@ -314,10 +471,14 @@ async def websocket_endpoint(ws: WebSocket):
 async def broadcast_loop():
     """Async task that drains tick_queue and broadcasts to all clients."""
     loop = asyncio.get_event_loop()
-    while not stop_event.is_set():
+    while True:
         try:
             payload = await loop.run_in_executor(None, lambda: tick_queue.get(timeout=0.5))
         except Empty:
+            # Keep draining after the sim stops so the final session_end (queued
+            # immediately before stop_event is set) still reaches the clients.
+            if stop_event.is_set():
+                break
             continue
 
         message = json.dumps(payload)

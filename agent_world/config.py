@@ -32,20 +32,28 @@ SHOUT_RANGE = 10
 
 # LLM
 OLLAMA_URL = "http://localhost:11434"
-MODEL_NAME = "llama3.1:8b"
+MODEL_NAME = "qwen3:8b"
 TEMPERATURE = 0.7
 MAX_TOKENS = 256                # For action responses
 SUMMARY_MAX_TOKENS = 150        # For journal compression
 
 # Food
-INITIAL_FOOD_COUNT = 30         # Food items placed at world generation
+INITIAL_FOOD_COUNT = 20         # Food items placed at world generation
 FOOD_CLUSTER_CHANCE = 0.3       # Probability food spawns near existing food (lower = more spread)
+FOOD_REGROWTH_CHANCE = 0.06     # Chance per tick to spawn 1 food
+MAX_FOOD_TOTAL = 35             # Maximum amount of food allowed in the world at once
 
 # Display
 DEFAULT_TICK_SPEED = 1.0        # Seconds between ticks
 EVENT_LOG_SIZE = 15             # Number of events to show
 
 # Story generation
-STORY_MODEL = "claude-sonnet-4-20250514"
 STORY_ENABLED = True            # Set False to disable
-STORY_MAX_TOKENS = 400
+STORY_BACKEND = "ollama"        # "ollama" = free + local | "anthropic" = paid API
+STORY_MAX_TOKENS = 600          # qwen3:8b needs headroom for a ~200-word story
+STORY_TEMPERATURE = 0.9         # Higher than the action model — this is prose
+
+# Only consulted when STORY_BACKEND == "anthropic". Billed per token.
+# If you switch to this, also raise STORY_MAX_TOKENS to ~2000: Opus 5 runs
+# adaptive thinking by default and max_tokens covers thinking + output.
+STORY_MODEL = "claude-opus-5"
